@@ -59,6 +59,9 @@ jobs:
           else
             printf '%s\n' '{"schemaVersion":1,"label":"coverage","message":"n/a","color":"lightgrey"}' > site/coverage.json
           fi
+          if [[ -f CNAME ]]; then
+            cp CNAME site/CNAME
+          fi
           touch site/.nojekyll
 
       - uses: actions/upload-pages-artifact@v3

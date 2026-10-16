@@ -7,6 +7,9 @@
 
 ## [Unreleased]
 
+## [0.0.1] — 2026-10-16
+
 ### Добавлено
 
 - Начальный скаффолд пакета `cloudcastle/connect-manager`
+- CI/CD, документация, бейджи и GitHub Pages
