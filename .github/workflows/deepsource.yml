@@ -1,0 +1,33 @@
+name: DeepSource
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deepsource:
+    name: DeepSource report
+    runs-on: ubuntu-latest
+    if: ${{ secrets.DEEPSOURCE_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install DeepSource CLI
+        run: curl https://deepsource.io/cli | sh
+      - name: Report to DeepSource
+        env:
+          DEEPSOURCE_TOKEN: ${{ secrets.DEEPSOURCE_TOKEN }}
+        run: |
+          if [ -f .deepsource.toml ]; then
+            ./bin/deepsource report --analyzer test-coverage --key php --value-file var/coverage/clover.xml || true
+          else
+            echo "Нет .deepsource.toml — репозиторий нужно Activate в DeepSource UI"
+          fi
+        continue-on-error: true

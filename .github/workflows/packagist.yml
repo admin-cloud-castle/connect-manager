@@ -1,0 +1,33 @@
+name: Packagist sync
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.PACKAGIST_USERNAME != '' && secrets.PACKAGIST_API_TOKEN != '' }}
+    steps:
+      - name: Update Packagist
+        env:
+          PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
+          PACKAGIST_API_TOKEN: ${{ secrets.PACKAGIST_API_TOKEN }}
+          REPO_URL: https://github.com/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${PACKAGIST_USERNAME}:${PACKAGIST_API_TOKEN}" \
+            -d "{\"repository\":{\"url\":\"${REPO_URL}\"}}" \
+            "https://packagist.org/api/update-package" \
+            || curl -sS -X POST \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${PACKAGIST_USERNAME}:${PACKAGIST_API_TOKEN}" \
+              -d "{\"repository\":{\"url\":\"${REPO_URL}\"}}" \
+              "https://packagist.org/api/create-package"

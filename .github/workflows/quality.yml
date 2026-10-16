@@ -1,0 +1,83 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: xdebug
+          extensions: mbstring, xml, dom, tokenizer, ctype, json
+          ini-values: memory_limit=512M
+          tools: composer:v2
+
+      - name: Get Composer cache dir
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-${{ matrix.php }}-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Linters
+        run: composer ci:linters
+
+      - name: Static analysis
+        run: composer ci:static-analysis
+
+      - name: Tests coverage
+        env:
+          XDEBUG_MODE: coverage
+        run: composer test:coverage
+
+      - name: Coverage badge JSON
+        if: matrix.php == '8.3'
+        run: php tools/clover-to-coverage-json.php var/coverage/clover.xml var/coverage/coverage.json
+
+      - name: Upload coverage artifacts
+        if: matrix.php == '8.3'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-clover
+          path: |
+            var/coverage/clover.xml
+            var/coverage/coverage.json
+          if-no-files-found: warn
+
+      - name: Tests mutation
+        if: matrix.php == '8.3'
+        run: composer test:mutation
+
+      - name: Meta
+        run: composer ci:meta

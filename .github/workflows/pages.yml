@@ -1,0 +1,76 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: [Quality]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+
+      - run: composer install --prefer-dist --no-progress --no-interaction --no-dev || composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Fetch coverage badge from Quality
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p var/coverage site
+          RUN_ID="${{ github.event.workflow_run.id }}"
+          if [[ -z "${RUN_ID}" ]]; then
+            RUN_ID="$(gh run list --workflow=quality.yml --branch=main --status=success --limit=1 --json databaseId --jq '.[0].databaseId // empty')"
+          fi
+          if [[ -n "${RUN_ID}" ]]; then
+            gh run download "${RUN_ID}" --name coverage-clover --dir var/coverage || true
+          fi
+
+      - name: Build site
+        run: |
+          mkdir -p site
+          printf '%s\n' "<!DOCTYPE html><html lang=\"ru\"><head><meta charset=\"utf-8\"><title>${{ github.repository }}</title></head><body><h1>${{ github.repository }}</h1><p>Документация появится после phpDocumentor.</p><p><a href=\"coverage.json\">coverage.json</a></p></body></html>" > site/index.html
+          if [[ -f var/coverage/clover.xml && ! -f var/coverage/coverage.json ]]; then
+            php tools/clover-to-coverage-json.php var/coverage/clover.xml var/coverage/coverage.json
+          fi
+          if [[ -f var/coverage/coverage.json ]]; then
+            cp var/coverage/coverage.json site/coverage.json
+          else
+            printf '%s\n' '{"schemaVersion":1,"label":"coverage","message":"n/a","color":"lightgrey"}' > site/coverage.json
+          fi
+          touch site/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,37 @@
+name: Coverage Coveralls
+
+on:
+  workflow_run:
+    workflows: [Quality]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  coveralls:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: coverage-clover
+          path: var/coverage
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Coveralls (бесплатно для public OSS)
+        if: hashFiles('var/coverage/clover.xml') != ''
+        uses: coverallsapp/github-action@v2
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        with:
+          file: var/coverage/clover.xml
+          format: clover
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true

@@ -1,0 +1,17 @@
+/vendor/
+/var/
+/docs/
+/site/
+/.phpunit.cache/
+/.php-cs-fixer.cache
+/.phpcs-cache
+/infection.json
+/composer.phar
+*.log
+.phpunit.result.cache
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

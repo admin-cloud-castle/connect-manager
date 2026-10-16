@@ -1,0 +1,21 @@
+build:
+  nodes:
+    analysis:
+      tests:
+        override:
+          - php-scrutinizer-run
+    tests:
+      environment:
+        php: 8.3
+      tests:
+        override:
+          - command: composer test:coverage
+            coverage:
+              file: var/coverage/clover.xml
+              format: clover
+
+filter:
+  excluded_paths:
+    - tests/*
+    - tools/*
+    - vendor/*

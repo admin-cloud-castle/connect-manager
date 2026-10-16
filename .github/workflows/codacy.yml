@@ -1,0 +1,38 @@
+name: Codacy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  codacy:
+    name: Codacy coverage
+    runs-on: ubuntu-latest
+    if: ${{ secrets.CODACY_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: xdebug
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: Run tests with coverage
+        run: vendor/bin/phpunit --coverage-clover=var/coverage/clover.xml
+        continue-on-error: true
+      - name: Upload coverage to Codacy
+        if: hashFiles('var/coverage/clover.xml') != ''
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_API_TOKEN }}
+        run: |
+          bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
+            --force-language PHP \
+            -r var/coverage/clover.xml || true
+        continue-on-error: true
