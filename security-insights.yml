@@ -2,32 +2,32 @@ header:
   schema-version: "2.2.0"
   last-updated: "2026-10-16"
   last-reviewed: "2026-10-16"
-  url: https://raw.githubusercontent.com/local/connect-manager/main/security-insights.yml
+  url: https://raw.githubusercontent.com/admin-cloud-castle/connect-manager/main/security-insights.yml
 
 project:
   name: cloudcastle/connect-manager
   administrators:
     - name: CloudCastle
-      social: https://github.com/local
+      social: https://github.com/admin-cloud-castle
       primary: true
   repositories:
     - name: connect-manager
-      url: https://github.com/local/connect-manager
+      url: https://github.com/admin-cloud-castle/connect-manager
   vulnerability-reporting:
     reports-accepted: true
     bug-bounty-available: false
 
 repository:
-  url: https://github.com/local/connect-manager
+  url: https://github.com/admin-cloud-castle/connect-manager
   status: active
   accepts-change-request: true
   accepts-automated-change-request: true
   core-team:
     - name: CloudCastle
-      social: https://github.com/local
+      social: https://github.com/admin-cloud-castle
       primary: true
   license:
-    url: https://github.com/local/connect-manager/blob/main/LICENSE
+    url: https://github.com/admin-cloud-castle/connect-manager/blob/main/LICENSE
     expression: MIT
   security:
     assessments:

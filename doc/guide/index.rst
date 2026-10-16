@@ -1,4 +1,4 @@
-Connect Manager
-===============
+ConnectManager
+==============
 
 Документация phpDocumentor (RST). Заполняется по мере разработки.

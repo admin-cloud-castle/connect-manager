@@ -1,4 +1,4 @@
-**Connect Manager**
+**ConnectManager**
 
 - [Home](Home)
 - [Quick start](docs/ru/Quick-start)

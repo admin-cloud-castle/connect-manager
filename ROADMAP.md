@@ -11,4 +11,4 @@
 - Расширение примеров и гайдов
 - Интеграции по запросам сообщества
 
-Идеи и обсуждения: [Discussions](https://github.com/local/connect-manager/discussions) / [Issues](https://github.com/local/connect-manager/issues).
+Идеи и обсуждения: [Discussions](https://github.com/admin-cloud-castle/connect-manager/discussions) / [Issues](https://github.com/admin-cloud-castle/connect-manager/issues).

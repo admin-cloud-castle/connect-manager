@@ -14,12 +14,12 @@
             "name": "CloudCastle"
         }
     ],
-    "homepage": "https://github.com/local/connect-manager",
+    "homepage": "https://github.com/admin-cloud-castle/connect-manager",
     "support": {
-        "issues": "https://github.com/local/connect-manager/issues",
-        "source": "https://github.com/local/connect-manager",
-        "docs": "https://github.com/local/connect-manager/wiki",
-        "security": "https://github.com/local/connect-manager/security/advisories/new"
+        "issues": "https://github.com/admin-cloud-castle/connect-manager/issues",
+        "source": "https://github.com/admin-cloud-castle/connect-manager",
+        "docs": "https://github.com/admin-cloud-castle/connect-manager/wiki",
+        "security": "https://github.com/admin-cloud-castle/connect-manager/security/advisories/new"
     },
     "require": {
         "php": ">=8.1"

@@ -10,7 +10,7 @@ PHP 8.1+.
 
 ## Куда писать вопрос, а не баг?
 
-[Discussions](https://github.com/local/connect-manager/discussions) или шаблон Q&A.
+[Discussions](https://github.com/admin-cloud-castle/connect-manager/discussions) или шаблон Q&A.
 
 ## Как сообщить об уязвимости?
 

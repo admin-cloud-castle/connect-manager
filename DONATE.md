@@ -6,7 +6,7 @@
 
 Кнопка **Sponsor** в шапке репозитория (файл [`.github/FUNDING.yml`](.github/FUNDING.yml)):
 
-- https://github.com/sponsors/local
+- https://github.com/sponsors/admin-cloud-castle
 
 ## Другие способы
 

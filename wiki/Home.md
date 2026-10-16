@@ -1,4 +1,4 @@
-# Connect Manager
+# ConnectManager
 
 Выбор языка / Language:
 

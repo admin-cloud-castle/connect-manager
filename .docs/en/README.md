@@ -1,10 +1,10 @@
 [ru](../../README.md) · **en** · [de](../de/README.md) · [fr](../fr/README.md) · [es](../es/README.md) · [it](../it/README.md)
 
-# Connect Manager
+# ConnectManager
 
 > Translation stub — full content is in Russian ([README.md](../../README.md)).
 
-Production-ready PHP 8.1+ Connect Manager library (CloudCastle).
+Production-ready PHP 8.1+ ConnectManager library (CloudCastle).
 
 ```bash
 composer require cloudcastle/connect-manager
