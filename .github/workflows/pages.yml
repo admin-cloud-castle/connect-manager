@@ -60,7 +60,8 @@ jobs:
             printf '%s\n' '{"schemaVersion":1,"label":"coverage","message":"n/a","color":"lightgrey"}' > site/coverage.json
           fi
           if [[ -f CNAME ]]; then
-            cp CNAME site/CNAME
+            # В корне CNAME может быть host/path; в артефакт Pages — только hostname.
+            sed 's|/.*||' CNAME > site/CNAME
           fi
           touch site/.nojekyll
 

@@ -33,7 +33,7 @@ Production-ready PHP 8.1+ библиотека Connect Manager (CloudCastle).
 [![PHPMD](https://img.shields.io/badge/PHPMD-clean-brightgreen)](https://phpmd.org)
 [![PHPCS](https://img.shields.io/badge/PHPCS-PSR--12-brightgreen)](https://github.com/squizlabs/PHP_CodeSniffer)
 [![Psalm](https://img.shields.io/badge/Psalm-level%201-brightgreen)](https://psalm.dev)
-[![Coverage](https://img.shields.io/endpoint?url=https://connect-manager.cloudcastle.dev/coverage.json)](https://connect-manager.cloudcastle.dev/coverage.json)
+[![Coverage](https://img.shields.io/endpoint?url=https://cloud-castle.ru/connect-manager/coverage.json)](https://cloud-castle.ru/connect-manager/coverage.json)
 [![Infection MSI](https://img.shields.io/badge/Infection%20MSI-100%25-brightgreen)](https://infection.github.io)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/admin-cloud-castle/connect-manager/badge)](https://scorecard.dev/viewer/?uri=github.com/admin-cloud-castle/connect-manager)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15549/badge)](https://www.bestpractices.dev/projects/15549)
