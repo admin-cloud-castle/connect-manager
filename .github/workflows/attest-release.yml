@@ -22,6 +22,6 @@ jobs:
           printf '%s\n' '{"bomFormat":"CycloneDX","specVersion":"1.5","components":[]}' > var/sbom/bom.json
 
       - name: Attest
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: var/sbom/bom.json
