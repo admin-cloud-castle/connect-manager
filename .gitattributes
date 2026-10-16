@@ -37,6 +37,11 @@
 /MAINTAINERS.md export-ignore
 /ROADMAP.md export-ignore
 /CREDITS.md export-ignore
+/ACCESSIBILITY.md export-ignore
+/RELEASE.md export-ignore
+/INSTALL.md export-ignore
+/ADOPTERS.md export-ignore
+/PULL_REQUEST_TEMPLATE.md export-ignore
 /NOTICE export-ignore
 /CODEOWNERS export-ignore
 /CITATION.cff export-ignore
