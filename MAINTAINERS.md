@@ -2,6 +2,6 @@
 
 | GitHub | Роль |
 |--------|------|
-| [@admin-cloud-castle](https://github.com/admin-cloud-castle) | Maintainer |
+| [@local](https://github.com/local) | Maintainer |
 
 Правила управления: [GOVERNANCE.md](GOVERNANCE.md).

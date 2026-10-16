@@ -9,8 +9,8 @@
 
 ## Как сообщить о барьере
 
-1. [Discussions](https://github.com/admin-cloud-castle/connect-manager/discussions) — вопросы по доступности
-2. [Issues](https://github.com/admin-cloud-castle/connect-manager/issues) с меткой `documentation`
+1. [Discussions](https://github.com/local/connect-manager/discussions) — вопросы по доступности
+2. [Issues](https://github.com/local/connect-manager/issues) с меткой `documentation`
 3. Критичные проблемы безопасности интерфейса — через [SECURITY.md](SECURITY.md)
 
 Мы принимаем правки в тексты, разметку wiki и контраст/структуру заголовков.

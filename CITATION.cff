@@ -4,6 +4,6 @@ message: "Если используете этот пакет в исследо�
 type: software
 authors:
   - name: "CloudCastle"
-repository-code: "https://github.com/admin-cloud-castle/connect-manager"
+repository-code: "https://github.com/local/connect-manager"
 license: MIT
 version: 0.0.1

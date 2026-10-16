@@ -1,0 +1,36 @@
+header:
+  schema-version: "2.2.0"
+  last-updated: "2026-10-16"
+  last-reviewed: "2026-10-16"
+  url: https://raw.githubusercontent.com/local/connect-manager/main/security-insights.yml
+
+project:
+  name: cloudcastle/connect-manager
+  administrators:
+    - name: CloudCastle
+      social: https://github.com/local
+      primary: true
+  repositories:
+    - name: connect-manager
+      url: https://github.com/local/connect-manager
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+
+repository:
+  url: https://github.com/local/connect-manager
+  status: active
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  core-team:
+    - name: CloudCastle
+      social: https://github.com/local
+      primary: true
+  license:
+    url: https://github.com/local/connect-manager/blob/main/LICENSE
+    expression: MIT
+  security:
+    assessments:
+      self:
+        comment: |
+          Базовая политика в SECURITY.md; private vulnerability reporting включён.

@@ -1,5 +1,5 @@
 # Управление проектом
 
-- Мейнтейнер: @admin-cloud-castle
+- Мейнтейнер: @local
 - Релизы: SemVer, через GitHub Releases + Packagist
 - Breaking changes — только major, с записью в UPGRADING.md

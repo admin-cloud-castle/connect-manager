@@ -1,5 +1,5 @@
 # Авторы
 
-- CloudCastle ([@admin-cloud-castle](https://github.com/admin-cloud-castle)) — мейнтейнер
+- CloudCastle ([@local](https://github.com/local)) — мейнтейнер
 
-Список коммитеров: https://github.com/admin-cloud-castle/connect-manager/graphs/contributors
+Список коммитеров: https://github.com/local/connect-manager/graphs/contributors
