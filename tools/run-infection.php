@@ -22,6 +22,8 @@ $descriptors = [
     2 => STDERR,
 ];
 
+// argv-массив без shell — безопасно; Semgrep flags любой proc_open.
+// nosemgrep: php.lang.security.exec-use.exec-use
 $process = proc_open($cmd, $descriptors, $pipes);
 if (!is_resource($process)) {
     fwrite(STDERR, "Не удалось запустить Infection\n");
