@@ -1,8 +1,8 @@
 **ru** · [en](.docs/en/README.md) · [de](.docs/de/README.md) · [fr](.docs/fr/README.md) · [es](.docs/es/README.md) · [it](.docs/it/README.md)
 
-# ConnectManager
+# Connect Manager
 
-Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
+Production-ready PHP 8.1+ библиотека Connect Manager (CloudCastle).
 
 <!-- Группа 1: Packagist -->
 [![Packagist Version](https://img.shields.io/packagist/v/cloud-castle/connect-manager?label=packagist)](https://packagist.org/packages/cloud-castle/connect-manager)
@@ -36,7 +36,7 @@ Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
 [![Coverage](https://img.shields.io/endpoint?url=https://cloud-castle.ru/connect-manager/coverage.json)](https://cloud-castle.ru/connect-manager/coverage.json)
 [![Infection MSI](https://img.shields.io/badge/Infection%20MSI-100%25-brightgreen)](https://infection.github.io)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/admin-cloud-castle/connect-manager/badge)](https://scorecard.dev/viewer/?uri=github.com/admin-cloud-castle/connect-manager)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects?as=badge&url=https%3A%2F%2Fgithub.com%2Fadmin-cloud-castle%2Fconnect-manager)](https://www.bestpractices.dev/projects?as=entry&url=https%3A%2F%2Fgithub.com%2Fadmin-cloud-castle%2Fconnect-manager)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15549/badge)](https://www.bestpractices.dev/projects/15549)
 [![Coveralls](https://coveralls.io/repos/github/admin-cloud-castle/connect-manager/badge.svg?branch=main)](https://coveralls.io/github/admin-cloud-castle/connect-manager?branch=main)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=admin-cloud-castle_connect-manager&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=admin-cloud-castle_connect-manager)
 [![Scrutinizer](https://scrutinizer-ci.com/g/admin-cloud-castle/connect-manager/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/admin-cloud-castle/connect-manager/)
@@ -46,7 +46,7 @@ Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
 
 ## Зачем
 
-Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
+Production-ready PHP 8.1+ библиотека Connect Manager (CloudCastle).
 
 Краткая выжимка:
 
