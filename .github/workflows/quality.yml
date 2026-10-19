@@ -99,8 +99,9 @@ jobs:
             echo "clover.xml нет — пропуск ocular"
             exit 0
           fi
-          curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/ocular.phar \
-            https://scrutinizer-ci.com/ocular.phar
+          # ocular.phar с сайта — 403 Cloudflare; ставим из Packagist
+          composer global require scrutinizer/ocular --no-interaction --no-progress
+          ocular_bin="$(composer global config bin-dir --absolute --quiet)/ocular"
           args=(
             code-coverage:upload
             --format=php-clover
@@ -111,7 +112,7 @@ jobs:
           if [[ -n "${SCRUTINIZER_TOKEN}" ]]; then
             args+=(--access-token="${SCRUTINIZER_TOKEN}")
           fi
-          php /tmp/ocular.phar "${args[@]}"
+          "${ocular_bin}" "${args[@]}"
 
       - name: Tests mutation
         run: composer test:mutation
