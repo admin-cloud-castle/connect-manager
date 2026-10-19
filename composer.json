@@ -99,7 +99,10 @@
             "@php -d memory_limit=512M vendor/bin/phpunit --coverage-clover=var/coverage/clover.xml --coverage-text",
             "@php tools/coverage-check.php var/coverage/clover.xml"
         ],
-        "test:mutation": "php tools/run-infection.php",
+        "test:mutation": [
+            "Composer\\Config::disableProcessTimeout",
+            "php -d memory_limit=3G vendor/bin/infection --configuration=infection.json.dist --threads=max --show-mutations"
+        ],
         "docs:sync": [
             "@docs:thresholds",
             "@docs:features"
