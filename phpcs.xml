@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="cloudcastle/connect-manager">
+<ruleset name="cloud-castle/connect-manager">
     <description>PSR-12</description>
     <file>src</file>
     <file>tests</file>

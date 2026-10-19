@@ -21,6 +21,6 @@ final class PackageTest extends TestCase
     {
         $package = new Package();
 
-        self::assertSame('cloudcastle/connect-manager', $package->name());
+        self::assertSame('cloud-castle/connect-manager', $package->name());
     }
 }

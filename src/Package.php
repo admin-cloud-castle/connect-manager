@@ -21,6 +21,6 @@ final class Package
      */
     public function name(): string
     {
-        return 'cloudcastle/connect-manager';
+        return 'cloud-castle/connect-manager';
     }
 }

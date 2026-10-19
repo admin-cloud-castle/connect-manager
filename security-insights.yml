@@ -5,7 +5,7 @@ header:
   url: https://raw.githubusercontent.com/admin-cloud-castle/connect-manager/main/security-insights.yml
 
 project:
-  name: cloudcastle/connect-manager
+  name: cloud-castle/connect-manager
   administrators:
     - name: CloudCastle
       social: https://github.com/admin-cloud-castle

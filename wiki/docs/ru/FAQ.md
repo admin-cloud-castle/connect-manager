@@ -1,6 +1,6 @@
 # FAQ
 
-Документация пакета `cloudcastle/connect-manager` (RU).
+Документация пакета `cloud-castle/connect-manager` (RU).
 
 Заполните содержимое по мере разработки. Авто-блоки:
 

@@ -1,6 +1,6 @@
 # Участие в разработке
 
-Спасибо за интерес к `cloudcastle/connect-manager`.
+Спасибо за интерес к `cloud-castle/connect-manager`.
 
 ## Быстрый цикл
 

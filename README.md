@@ -5,15 +5,15 @@
 Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
 
 <!-- Группа 1: Packagist -->
-[![Packagist Version](https://img.shields.io/packagist/v/cloudcastle/connect-manager?label=packagist)](https://packagist.org/packages/cloudcastle/connect-manager)
-[![PHP Version](https://img.shields.io/packagist/php-v/cloudcastle/connect-manager)](https://packagist.org/packages/cloudcastle/connect-manager)
-[![License](https://img.shields.io/packagist/l/cloudcastle/connect-manager)](LICENSE)
-[![Downloads](https://img.shields.io/packagist/dt/cloudcastle/connect-manager)](https://packagist.org/packages/cloudcastle/connect-manager)
-[![Monthly Downloads](https://img.shields.io/packagist/dm/cloudcastle/connect-manager)](https://packagist.org/packages/cloudcastle/connect-manager)
-[![Packagist Stars](https://img.shields.io/packagist/stars/cloudcastle/connect-manager)](https://packagist.org/packages/cloudcastle/connect-manager)
-[![Dependents](https://img.shields.io/packagist/dependents/cloudcastle/connect-manager)](https://packagist.org/packages/cloudcastle/connect-manager/dependents)
-[![Suggesters](https://img.shields.io/packagist/suggesters/cloudcastle/connect-manager)](https://packagist.org/packages/cloudcastle/connect-manager/suggesters)
-[![Security Advisories](https://img.shields.io/badge/advisories-none-brightgreen)](https://packagist.org/packages/cloudcastle/connect-manager)
+[![Packagist Version](https://img.shields.io/packagist/v/cloud-castle/connect-manager?label=packagist)](https://packagist.org/packages/cloud-castle/connect-manager)
+[![PHP Version](https://img.shields.io/packagist/php-v/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager)
+[![License](https://img.shields.io/packagist/l/cloud-castle/connect-manager)](LICENSE)
+[![Downloads](https://img.shields.io/packagist/dt/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager)
+[![Monthly Downloads](https://img.shields.io/packagist/dm/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager)
+[![Packagist Stars](https://img.shields.io/packagist/stars/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager)
+[![Dependents](https://img.shields.io/packagist/dependents/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager/dependents)
+[![Suggesters](https://img.shields.io/packagist/suggesters/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager/suggesters)
+[![Security Advisories](https://img.shields.io/badge/advisories-none-brightgreen)](https://packagist.org/packages/cloud-castle/connect-manager)
 
 <!-- Группа 2: GitHub -->
 [![Quality](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/quality.yml/badge.svg)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/quality.yml)
@@ -62,12 +62,12 @@ Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
 ## Когда применять
 
 - Новый код на PHP 8.1+, где нужны предсказуемые контракты и зелёный CI
-- Проекты экосистемы CloudCastle / `cloudcastle/*`
+- Проекты экосистемы CloudCastle / `cloud-castle/*`
 
 ## Установка
 
 ```bash
-composer require cloudcastle/connect-manager
+composer require cloud-castle/connect-manager
 ```
 
 ## Быстрый старт

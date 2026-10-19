@@ -1,7 +1,7 @@
 # Установка
 
 ```bash
-composer require cloudcastle/connect-manager
+composer require cloud-castle/connect-manager
 ```
 
 Требования: PHP 8.1+, Composer 2.

@@ -11,5 +11,5 @@
 
 ### Добавлено
 
-- Начальный скаффолд пакета `cloudcastle/connect-manager`
+- Начальный скаффолд пакета `cloud-castle/connect-manager`
 - CI/CD, документация, бейджи и GitHub Pages

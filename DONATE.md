@@ -1,6 +1,6 @@
 # Донаты
 
-Поддержите развитие `cloudcastle/connect-manager` — это ускоряет фиксы, документацию и релизы.
+Поддержите развитие `cloud-castle/connect-manager` — это ускоряет фиксы, документацию и релизы.
 
 ## GitHub Sponsors
 

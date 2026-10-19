@@ -7,7 +7,7 @@
 Production-ready PHP 8.1+ ConnectManager library (CloudCastle).
 
 ```bash
-composer require cloudcastle/connect-manager
+composer require cloud-castle/connect-manager
 ```
 
 [ru](../../README.md) · **en** · [de](../de/README.md) · [fr](../fr/README.md) · [es](../es/README.md) · [it](../it/README.md)
