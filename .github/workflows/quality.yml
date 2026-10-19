@@ -19,7 +19,7 @@ jobs:
   quality:
     name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -34,7 +34,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: xdebug
           extensions: mbstring, xml, dom, tokenizer, ctype, json
-          ini-values: memory_limit=512M
+          ini-values: memory_limit=3G
           tools: composer:v2
 
       - name: Get Composer cache dir
@@ -90,7 +90,6 @@ jobs:
         continue-on-error: true
 
       - name: Tests mutation
-        if: matrix.php == '8.3'
         run: composer test:mutation
 
       - name: Meta
