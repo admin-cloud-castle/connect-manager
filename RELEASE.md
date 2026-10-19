@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+</p>
+
 # Релизы
 
 1. Обновить [CHANGELOG.md](CHANGELOG.md) и при breaking — [UPGRADING.md](UPGRADING.md)

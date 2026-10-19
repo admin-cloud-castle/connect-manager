@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+</p>
+
 # Стиль кода
 
 - PHP 8.1+, `declare(strict_types=1);`

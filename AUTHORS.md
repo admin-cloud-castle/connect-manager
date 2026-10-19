@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+</p>
+
 # Авторы
 
 - CloudCastle <admin.cloudcastle@gmail.com> ([@admin-cloud-castle](https://github.com/admin-cloud-castle)) — мейнтейнер

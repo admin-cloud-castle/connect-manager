@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+</p>
+
 # Донаты
 
 Поддержите развитие `cloud-castle/connect-manager` — это ускоряет фиксы, документацию и релизы.

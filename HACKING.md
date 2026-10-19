@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+</p>
+
 # Разработка
 
 См. [CONTRIBUTING.md](CONTRIBUTING.md) и [CODE_STYLE.md](CODE_STYLE.md).

@@ -1,5 +1,9 @@
 **ru** · [en](.docs/en/README.md) · [de](.docs/de/README.md) · [fr](.docs/fr/README.md) · [es](.docs/es/README.md) · [it](.docs/it/README.md)
 
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="160">
+</p>
+
 # ConnectManager
 
 Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).

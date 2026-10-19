@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+</p>
+
 # Changelog
 
 Все заметные изменения проекта документируются в этом файле.

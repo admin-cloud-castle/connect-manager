@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+</p>
+
 # Кто использует
 
 Проекты и команды, использующие `cloud-castle/connect-manager` (по желанию добавьте PR):

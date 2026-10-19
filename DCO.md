@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+</p>
+
 # Developer Certificate of Origin (DCO)
 
 Внося вклад в `cloud-castle/connect-manager`, вы подтверждаете, что код можете передать под лицензией проекта ([LICENSE](LICENSE)), и что вклад — ваш или у вас есть права на его передачу.

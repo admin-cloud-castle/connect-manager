@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+</p>
+
 # Версионирование
 
 Проект следует [Semantic Versioning](https://semver.org/lang/ru/).
