@@ -1,7 +1,7 @@
 header:
   schema-version: "2.2.0"
-  last-updated: "2026-10-16"
-  last-reviewed: "2026-10-16"
+  last-updated: "2026-10-19"
+  last-reviewed: "2026-10-19"
   url: https://raw.githubusercontent.com/admin-cloud-castle/connect-manager/main/security-insights.yml
 
 project:

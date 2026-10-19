@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+  <img src="assets/logo.svg" alt="Connect Manager" width="120">
 </p>
 
 # Changelog
@@ -11,7 +11,7 @@
 
 ## [Unreleased]
 
-## [0.0.1] — 2026-10-16
+## [0.0.1] — 2026-10-19
 
 ### Добавлено
 

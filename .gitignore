@@ -2,6 +2,7 @@
 /var/
 /docs/
 /site/
+.phpdoc/
 /.phpunit.cache/
 /.php-cs-fixer.cache
 /.phpcs-cache
@@ -15,5 +16,3 @@
 *.swo
 .DS_Store
 Thumbs.db
-.phpdoc/
-/var/

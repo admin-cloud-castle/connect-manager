@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="ConnectManager" width="120">
+  <img src="assets/logo.svg" alt="Connect Manager" width="120">
 </p>
 
 # Установка

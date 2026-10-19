@@ -31,9 +31,9 @@ jobs:
           results_file: results.sarif
           results_format: sarif
           publish_results: true
-          # git: читать файлы из checkout (Code Search у новых репо часто пустой → ложные 0)
+          # git: читать из checkout (у новых репо Code Search часто пустой → ложные 0)
           file_mode: git
-          # PAT с admin: чтение Branch-Protection; иначе Scorecard всегда 0 по защите веток
+          # PAT (SCORECARD_TOKEN) с admin — иначе Branch-Protection всегда 0
           repo_token: ${{ secrets.SCORECARD_TOKEN }}
 
       - name: Upload SARIF

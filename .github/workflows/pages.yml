@@ -50,11 +50,12 @@ jobs:
             find site -maxdepth 3 -type f | head -50 >&2 || true
             exit 1
           fi
-          # Не копируем CNAME с apex cloud-castle.ru — иначе Pages перехватывает сайт проекта.
-          # Custom domain только если явно задан PAGES_CUSTOM_DOMAIN (hostname в CNAME без пути).
+          # Корневой CNAME (host/path) в репо обязателен и не трогаем.
+          # В артефакт Pages кладём только чистый hostname поддомена (не apex и не path).
           if [[ -f CNAME ]]; then
             host="$(tr -d '[:space:]' < CNAME)"
-            if [[ -n "${host}" && "${host}" != *'/'* && "${host}" != 'cloud-castle.ru' ]]; then
+            host="${host%%/*}"
+            if [[ -n "${host}" && "${host}" != 'cloud-castle.ru' ]]; then
               printf '%s\n' "${host}" > site/CNAME
             fi
           fi

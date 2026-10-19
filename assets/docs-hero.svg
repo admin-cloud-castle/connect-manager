@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-label="CloudCastle ConnectManager">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-label="CloudCastle Connect Manager">
   <defs>
     <linearGradient id="cc-bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#7274a6"/>
@@ -65,6 +65,6 @@
   <!-- НАЗВАНИЕ ПАКЕТА (справа) -->
   <g font-family="'Segoe UI',Verdana,Arial,sans-serif" font-weight="800" fill="#ffffff" text-anchor="middle">
     <text x="780" y="154" font-size="102">CloudCastle</text>
-    <text x="780" y="274" font-size="88">ConnectManager</text>
+    <text x="780" y="274" font-size="88">Connect Manager</text>
   </g>
 </svg>

@@ -1,12 +1,12 @@
 **ru** · [en](.docs/en/README.md) · [de](.docs/de/README.md) · [fr](.docs/fr/README.md) · [es](.docs/es/README.md) · [it](.docs/it/README.md)
 
 <p align="center">
-  <img src="assets/logo.svg" alt="ConnectManager" width="160">
+  <img src="assets/logo.svg" alt="Connect Manager" width="160">
 </p>
 
-# ConnectManager
+# Connect Manager
 
-Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
+Production-ready PHP 8.1+ библиотека Connect Manager (CloudCastle).
 
 <!-- Группа 1: Packagist (только живые shields endpoints) -->
 [![Packagist Version](https://img.shields.io/packagist/v/cloud-castle/connect-manager?label=packagist)](https://packagist.org/packages/cloud-castle/connect-manager)
@@ -50,7 +50,7 @@ Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
 
 ## Зачем
 
-Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
+Production-ready PHP 8.1+ библиотека Connect Manager (CloudCastle).
 
 Краткая выжимка:
 
@@ -83,8 +83,8 @@ declare(strict_types=1);
 
 use CloudCastle\ConnectManager\ConnectManager;
 
-$manager = new ConnectManager();
-echo $manager->name();
+$pkg = new ConnectManager();
+echo $pkg->name();
 ```
 
 ## Документация
