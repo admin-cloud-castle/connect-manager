@@ -88,6 +88,31 @@ jobs:
           files: var/coverage/clover.xml
         continue-on-error: true
 
+      - name: Scrutinizer coverage
+        if: matrix.php == '8.3'
+        continue-on-error: true
+        env:
+          SCRUTINIZER_TOKEN: ${{ secrets.SCRUTINIZER_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ ! -f var/coverage/clover.xml ]]; then
+            echo "clover.xml нет — пропуск ocular"
+            exit 0
+          fi
+          curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/ocular.phar \
+            https://scrutinizer-ci.com/ocular.phar
+          args=(
+            code-coverage:upload
+            --format=php-clover
+            --repository="g/${{ github.repository }}"
+            --revision="${{ github.sha }}"
+            var/coverage/clover.xml
+          )
+          if [[ -n "${SCRUTINIZER_TOKEN}" ]]; then
+            args+=(--access-token="${SCRUTINIZER_TOKEN}")
+          fi
+          php /tmp/ocular.phar "${args[@]}"
+
       - name: Tests mutation
         run: composer test:mutation
 
