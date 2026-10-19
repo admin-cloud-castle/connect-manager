@@ -15,11 +15,11 @@
             "email": "admin.cloudcastle@gmail.com"
         }
     ],
-    "homepage": "https://github.com/admin-cloud-castle/connect-manager",
+    "homepage": "https://cloud-castle.ru/connect-manager",
     "support": {
         "issues": "https://github.com/admin-cloud-castle/connect-manager/issues",
         "source": "https://github.com/admin-cloud-castle/connect-manager",
-        "docs": "https://github.com/admin-cloud-castle/connect-manager/wiki",
+        "docs": "https://cloud-castle.ru/connect-manager",
         "security": "https://github.com/admin-cloud-castle/connect-manager/security/advisories/new"
     },
     "require": {
