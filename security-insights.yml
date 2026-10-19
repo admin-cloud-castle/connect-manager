@@ -8,6 +8,7 @@ project:
   name: cloud-castle/connect-manager
   administrators:
     - name: CloudCastle
+      email: admin.cloudcastle@gmail.com
       social: https://github.com/admin-cloud-castle
       primary: true
   repositories:
@@ -24,6 +25,7 @@ repository:
   accepts-automated-change-request: true
   core-team:
     - name: CloudCastle
+      email: admin.cloudcastle@gmail.com
       social: https://github.com/admin-cloud-castle
       primary: true
   license:

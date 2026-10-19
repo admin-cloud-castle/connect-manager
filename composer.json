@@ -11,7 +11,8 @@
     ],
     "authors": [
         {
-            "name": "CloudCastle"
+            "name": "CloudCastle",
+            "email": "admin.cloudcastle@gmail.com"
         }
     ],
     "homepage": "https://github.com/admin-cloud-castle/connect-manager",

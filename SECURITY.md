@@ -14,4 +14,6 @@
 Используйте [GitHub Private Vulnerability Reporting](https://github.com/admin-cloud-castle/connect-manager/security/advisories/new)
 или откройте security advisory в репозитории.
 
+Альтернатива: admin.cloudcastle@gmail.com
+
 Срок первичного ответа — до 7 дней.
