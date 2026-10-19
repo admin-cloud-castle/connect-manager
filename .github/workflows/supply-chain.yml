@@ -18,7 +18,7 @@ jobs:
     name: OSV Scanner
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: google/osv-scanner-action/osv-scanner-action@v2.0.2
         with:
           scan-args: |-
@@ -30,7 +30,7 @@ jobs:
     name: Trivy filesystem
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run Trivy
         uses: aquasecurity/trivy-action@0.28.0
         with:
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ secrets.SOCKET_SECURITY_API_KEY != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: socketdev/socket-security-action@v1
         continue-on-error: true
         with:
