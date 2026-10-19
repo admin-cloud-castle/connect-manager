@@ -15,11 +15,12 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
       day: monday
-    open-pull-requests-limit: 5
+    # Actions уже pinned на SHA; PR только пачками раз в месяц.
+    open-pull-requests-limit: 3
     cooldown:
-      default-days: 7
+      default-days: 14
     labels:
       - dependencies
       - ci
