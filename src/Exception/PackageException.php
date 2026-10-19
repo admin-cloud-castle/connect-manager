@@ -9,6 +9,6 @@ use RuntimeException;
 /**
  * Базовое исключение пакета.
  */
-class PackageException extends RuntimeException
+final class PackageException extends RuntimeException
 {
 }

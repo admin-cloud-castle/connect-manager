@@ -16,7 +16,8 @@ if (!is_file($cloverPath)) {
 }
 
 $xml = new SimpleXMLElement((string) file_get_contents($cloverPath));
-$metrics = $xml->project->metrics ?? $xml->metrics ?? null;
+$metricsNodes = $xml->xpath('//project/metrics|//metrics');
+$metrics = (is_array($metricsNodes) && isset($metricsNodes[0])) ? $metricsNodes[0] : null;
 
 if ($metrics === null) {
     fwrite(STDERR, "Не удалось прочитать metrics из clover\n");
@@ -25,15 +26,28 @@ if ($metrics === null) {
 
 $statements = (int) $metrics['statements'];
 $covered = (int) $metrics['coveredstatements'];
-$percent = $statements > 0 ? ($covered / $statements) * 100 : 100.0;
+$percent = $statements > 0
+    ? ((float) $covered / (float) $statements) * 100.0
+    : 100.0;
 
 if ($percent + 0.0001 < MIN_LINE_COVERAGE_PERCENT) {
     fwrite(STDERR, sprintf("Покрытие %.2f%% ниже порога %.1f%%\n", $percent, MIN_LINE_COVERAGE_PERCENT));
     exit(1);
 }
 
-foreach ($xml->xpath('//file') ?: [] as $file) {
-    $fileMetrics = $file->metrics;
+$files = $xml->xpath('//file');
+if (!is_array($files)) {
+    $files = [];
+}
+
+foreach ($files as $file) {
+    $fileMetricsNodes = $file->xpath('./metrics');
+    $fileMetrics = (is_array($fileMetricsNodes) && isset($fileMetricsNodes[0])) ? $fileMetricsNodes[0] : null;
+
+    if ($fileMetrics === null) {
+        continue;
+    }
+
     $fileStatements = (int) $fileMetrics['statements'];
     $fileCovered = (int) $fileMetrics['coveredstatements'];
 
@@ -41,7 +55,7 @@ foreach ($xml->xpath('//file') ?: [] as $file) {
         continue;
     }
 
-    $filePercent = ($fileCovered / $fileStatements) * 100;
+    $filePercent = ((float) $fileCovered / (float) $fileStatements) * 100.0;
 
     if ($filePercent + 0.0001 < MIN_LINE_COVERAGE_PERCENT) {
         $name = (string) $file['name'];

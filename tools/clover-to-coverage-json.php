@@ -17,7 +17,8 @@ if (!is_file($cloverPath)) {
 }
 
 $xml = new SimpleXMLElement((string) file_get_contents($cloverPath));
-$metrics = $xml->project->metrics ?? $xml->metrics ?? null;
+$metricsNodes = $xml->xpath('//project/metrics|//metrics');
+$metrics = (is_array($metricsNodes) && isset($metricsNodes[0])) ? $metricsNodes[0] : null;
 
 if ($metrics === null) {
     fwrite(STDERR, "Не удалось прочитать metrics из clover\n");
@@ -26,7 +27,9 @@ if ($metrics === null) {
 
 $statements = (int) $metrics['statements'];
 $covered = (int) $metrics['coveredstatements'];
-$percent = $statements > 0 ? round(($covered / $statements) * 100, 2) : 100.0;
+$percent = $statements > 0
+    ? round(((float) $covered / (float) $statements) * 100.0, 2)
+    : 100.0;
 
 $color = 'red';
 if ($percent >= 99.8) {
