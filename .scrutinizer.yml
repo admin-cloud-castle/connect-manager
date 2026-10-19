@@ -1,18 +1,11 @@
+# Только static analysis. Тесты/coverage — GitHub Actions (Quality) и Qlty.
+# Нода tests на Scrutinizer стабильно даёт build=error (очередь/окружение).
 build:
   nodes:
     analysis:
       tests:
         override:
           - php-scrutinizer-run
-    tests:
-      environment:
-        php:
-          version: '8.3'
-      tests:
-        override:
-          # Только PHPUnit: coverage собирает GitHub Actions/Qlty.
-          # pecl pcov на Scrutinizer часто зависает в очереди; composer test:coverage без драйвера = build error.
-          - vendor/bin/phpunit
 
 checks:
   php: true
