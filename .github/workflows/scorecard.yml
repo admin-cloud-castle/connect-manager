@@ -31,6 +31,10 @@ jobs:
           results_file: results.sarif
           results_format: sarif
           publish_results: true
+          # git: читать файлы из checkout (Code Search у новых репо часто пустой → ложные 0)
+          file_mode: git
+          # PAT с admin: чтение Branch-Protection; иначе Scorecard всегда 0 по защите веток
+          repo_token: ${{ secrets.SCORECARD_TOKEN }}
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
