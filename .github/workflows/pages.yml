@@ -23,59 +23,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: '8.3'
           tools: composer:v2
 
-      - run: composer install --prefer-dist --no-progress --no-interaction --no-dev || composer install --prefer-dist --no-progress --no-interaction
+      # phpDocumentor в require-dev — ставим с dev
+      - run: composer install --prefer-dist --no-progress --no-interaction
 
-      - name: Build site
+      - name: Build phpDocumentor site
         run: |
           set -euo pipefail
-          mkdir -p site
-          REPO='${{ github.repository }}'
-          TITLE="$(basename "${REPO}")"
-          COVERALLS="https://coveralls.io/github/${REPO}"
-          # CI/CD-страница заменяет bootstrap /docs после успешного Quality.
-          python3 - "${TITLE}" "${REPO}" "${COVERALLS}" <<'PY'
-          import pathlib, sys
-          title, repo, coveralls = sys.argv[1], sys.argv[2], sys.argv[3]
-          pathlib.Path("site/index.html").write_text(
-              f"""<!DOCTYPE html>
-          <html lang="ru">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>{title} — CloudCastle</title>
-            <style>
-              body {{ margin:0; font-family:"Segoe UI",Verdana,Arial,sans-serif; background:linear-gradient(135deg,#7274a6,#464870); color:#f4f5fb; min-height:100vh; display:grid; place-items:center; }}
-              main {{ max-width:42rem; padding:2.5rem; text-align:center; }}
-              h1 {{ font-size:clamp(1.8rem,4vw,2.6rem); margin:0 0 .5rem; }}
-              p {{ color:#b9bce4; line-height:1.5; }}
-              a {{ color:#fff; }}
-              code {{ background:rgba(0,0,0,.25); padding:.1rem .35rem; border-radius:4px; }}
-            </style>
-          </head>
-          <body>
-            <main>
-              <p>CloudCastle</p>
-              <h1>{title}</h1>
-              <p>Страница собрана workflow <code>Pages</code> после успешного CI/CD.</p>
-              <p><a href="https://github.com/{repo}">Репозиторий</a> · <a href="{coveralls}">Coveralls</a></p>
-            </main>
-          </body>
-          </html>
-          """,
-              encoding="utf-8",
-          )
-          PY
-          if [[ -f CNAME ]]; then
-            # В корне CNAME может быть host/path; в артефакт Pages — только hostname.
-            sed 's|/.*||' CNAME > site/CNAME
+          rm -rf site
+          if [[ -f phpdoc.dist.xml ]]; then
+            composer docs:build
+          else
+            vendor/bin/phpdoc run -d src -t site --title="${{ github.event.repository.name }}" --force --no-interaction
           fi
-          if [[ -d assets ]]; then
-            cp -a assets site/assets 2>/dev/null || true
+          # Корень сайта = PHPDoc (не лендинг проекта)
+          if [[ -d site/api ]] && [[ ! -f site/index.html ]]; then
+            printf '%s\n' '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=api/index.html"><title>API docs</title></head><body><p><a href="api/index.html">API documentation</a></p></body></html>' > site/index.html
+          fi
+          if [[ ! -f site/index.html ]]; then
+            echo "phpDocumentor не создал site/index.html" >&2
+            find site -maxdepth 3 -type f | head -50 >&2 || true
+            exit 1
+          fi
+          # Не копируем CNAME с apex cloud-castle.ru — иначе Pages перехватывает сайт проекта.
+          # Custom domain только если явно задан PAGES_CUSTOM_DOMAIN (hostname в CNAME без пути).
+          if [[ -f CNAME ]]; then
+            host="$(tr -d '[:space:]' < CNAME)"
+            if [[ -n "${host}" && "${host}" != *'/'* && "${host}" != 'cloud-castle.ru' ]]; then
+              printf '%s\n' "${host}" > site/CNAME
+            fi
           fi
           touch site/.nojekyll
 

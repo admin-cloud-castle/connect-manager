@@ -15,11 +15,11 @@
             "email": "admin.cloudcastle@gmail.com"
         }
     ],
-    "homepage": "https://cloud-castle.ru/connect-manager",
+    "homepage": "https://admin-cloud-castle.github.io/connect-manager",
     "support": {
         "issues": "https://github.com/admin-cloud-castle/connect-manager/issues",
         "source": "https://github.com/admin-cloud-castle/connect-manager",
-        "docs": "https://cloud-castle.ru/connect-manager",
+        "docs": "https://admin-cloud-castle.github.io/connect-manager",
         "security": "https://github.com/admin-cloud-castle/connect-manager/security/advisories/new"
     },
     "require": {
@@ -102,6 +102,7 @@
             "@test:mutation"
         ],
         "coverage-check": "php tools/coverage-check.php var/coverage/clover.xml",
+        "docs:build": "phpdoc run --config=phpdoc.dist.xml --force --no-interaction",
         "docs:check": "phpdocumentor --version",
         "docs:features": "php tools/generate-features-docs.php",
         "docs:sync": [
@@ -129,9 +130,10 @@
         "test:unit": "phpunit --testsuite unit"
     },
     "scripts-descriptions": {
-        "ci": "Полный локальный пайплайн качества (как CI Quality)",
-        "docs:sync": "Пересборка авто-блоков документации",
-        "test:coverage": "Тесты с покрытием и порогом per-file",
+        "ci": "\u041f\u043e\u043b\u043d\u044b\u0439 \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0439 \u043f\u0430\u0439\u043f\u043b\u0430\u0439\u043d \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u0430 (\u043a\u0430\u043a CI Quality)",
+        "docs:build": "\u0413\u0435\u043d\u0435\u0440\u0430\u0446\u0438\u044f API-\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430\u0446\u0438\u0438 phpDocumentor \u0434\u043b\u044f GitHub Pages",
+        "docs:sync": "\u041f\u0435\u0440\u0435\u0441\u0431\u043e\u0440\u043a\u0430 \u0430\u0432\u0442\u043e-\u0431\u043b\u043e\u043a\u043e\u0432 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430\u0446\u0438\u0438",
+        "test:coverage": "\u0422\u0435\u0441\u0442\u044b \u0441 \u043f\u043e\u043a\u0440\u044b\u0442\u0438\u0435\u043c \u0438 \u043f\u043e\u0440\u043e\u0433\u043e\u043c per-file",
         "test:mutation": "Infection MSI"
     }
 }
