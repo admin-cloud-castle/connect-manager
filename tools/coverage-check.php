@@ -1,10 +1,10 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Проверяет порог покрытия по clover.xml (общий и per-file).
  */
+
+declare(strict_types=1);
 
 const MIN_LINE_COVERAGE_PERCENT = 99.8;
 

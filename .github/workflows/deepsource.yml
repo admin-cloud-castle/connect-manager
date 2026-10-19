@@ -14,12 +14,18 @@ jobs:
   deepsource:
     name: DeepSource report
     runs-on: ubuntu-latest
-    if: ${{ secrets.DEEPSOURCE_TOKEN != '' }}
+    env:
+      DEEPSOURCE_TOKEN: ${{ secrets.DEEPSOURCE_TOKEN }}
     steps:
+      - name: Skip notice
+        if: ${{ env.DEEPSOURCE_TOKEN == '' }}
+        run: echo "DEEPSOURCE_TOKEN не задан — пропуск DeepSource"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: ${{ env.DEEPSOURCE_TOKEN != '' }}
         with:
           fetch-depth: 0
       - name: Install DeepSource CLI
+        if: ${{ env.DEEPSOURCE_TOKEN != '' }}
         run: |
           set -euo pipefail
           VER=0.10.1
@@ -30,8 +36,7 @@ jobs:
           tar -xzf /tmp/deepsource.tar.gz -C /tmp
           sudo install -m 0755 /tmp/deepsource /usr/local/bin/deepsource
       - name: Report to DeepSource
-        env:
-          DEEPSOURCE_TOKEN: ${{ secrets.DEEPSOURCE_TOKEN }}
+        if: ${{ env.DEEPSOURCE_TOKEN != '' }}
         run: |
           if [ -f .deepsource.toml ]; then
             deepsource report --analyzer test-coverage --key php --value-file var/coverage/clover.xml || true

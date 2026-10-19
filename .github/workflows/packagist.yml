@@ -12,12 +12,16 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-    if: ${{ secrets.PACKAGIST_USERNAME != '' && secrets.PACKAGIST_API_TOKEN != '' }}
+    env:
+      PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
+      PACKAGIST_API_TOKEN: ${{ secrets.PACKAGIST_API_TOKEN }}
     steps:
+      - name: Skip notice
+        if: ${{ env.PACKAGIST_USERNAME == '' || env.PACKAGIST_API_TOKEN == '' }}
+        run: echo "PACKAGIST_* не заданы — пропуск sync"
       - name: Update Packagist
+        if: ${{ env.PACKAGIST_USERNAME != '' && env.PACKAGIST_API_TOKEN != '' }}
         env:
-          PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
-          PACKAGIST_API_TOKEN: ${{ secrets.PACKAGIST_API_TOKEN }}
           REPO_URL: https://github.com/${{ github.repository }}
         run: |
           set -euo pipefail

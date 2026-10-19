@@ -1,12 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * clover.xml → shields.io endpoint JSON (бесплатный бейдж покрытия без Codecov).
  *
  * @see https://shields.io/badges/endpoint-badge
  */
+
+declare(strict_types=1);
 
 $cloverPath = $argv[1] ?? 'var/coverage/clover.xml';
 $outPath = $argv[2] ?? 'var/coverage/coverage.json';
@@ -50,7 +50,7 @@ $payload = [
 
 $dir = dirname($outPath);
 if ($dir !== '' && $dir !== '.' && !is_dir($dir)) {
-    mkdir($dir, 0775, true);
+    mkdir($dir, 0o775, true);
 }
 
 file_put_contents(
