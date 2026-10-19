@@ -81,10 +81,10 @@ composer require cloud-castle/connect-manager
 
 declare(strict_types=1);
 
-use CloudCastle\ConnectManager\Package;
+use CloudCastle\ConnectManager\ConnectManager;
 
-$pkg = new Package();
-echo $pkg->name();
+$manager = new ConnectManager();
+echo $manager->name();
 ```
 
 ## Документация

@@ -15,3 +15,5 @@
 *.swo
 .DS_Store
 Thumbs.db
+.phpdoc/
+/var/

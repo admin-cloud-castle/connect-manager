@@ -4,35 +4,35 @@ declare(strict_types=1);
 
 namespace CloudCastle\ConnectManager\Tests\Unit;
 
-use CloudCastle\ConnectManager\Exception\PackageException;
-use CloudCastle\ConnectManager\Package;
+use CloudCastle\ConnectManager\ConnectManager;
+use CloudCastle\ConnectManager\Exception\CloudCastleException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Модульные тесты заглушки Package.
+ * Модульные тесты заглушки ConnectManager.
  */
-#[CoversClass(Package::class)]
-final class PackageTest extends TestCase
+#[CoversClass(ConnectManager::class)]
+final class ConnectManagerTest extends TestCase
 {
     /**
      * Проверяет, что name() возвращает composer-имя пакета.
      */
     public function testNameReturnsComposerPackageName(): void
     {
-        $package = new Package();
+        $package = new ConnectManager();
 
         self::assertSame('cloud-castle/connect-manager', $package->name());
     }
 
     /**
-     * Проверяет, что abort() бросает PackageException.
+     * Проверяет, что abort() бросает CloudCastleException.
      */
-    public function testAbortThrowsPackageException(): void
+    public function testAbortThrowsCloudCastleException(): void
     {
-        $package = new Package();
+        $package = new ConnectManager();
 
-        $this->expectException(PackageException::class);
+        $this->expectException(CloudCastleException::class);
         $this->expectExceptionMessage('тест');
 
         $package->abort('тест');

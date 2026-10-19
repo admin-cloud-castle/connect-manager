@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace CloudCastle\ConnectManager\Contract;
 
 /**
- * Контракт публичного API пакета.
+ * Контракт публичного API пакета Connect Manager.
  */
-interface PackageInterface
+interface ConnectManagerInterface
 {
     /**
      * Возвращает идентификатор пакета Composer.

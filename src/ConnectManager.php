@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace CloudCastle\ConnectManager;
 
-use CloudCastle\ConnectManager\Contract\PackageInterface;
-use CloudCastle\ConnectManager\Exception\PackageException;
+use CloudCastle\ConnectManager\Contract\ConnectManagerInterface;
+use CloudCastle\ConnectManager\Exception\CloudCastleException;
 
 /**
  * Точка входа пакета Connect Manager.
  *
  * Заглушка скаффолда: замените на реальный публичный API.
  */
-final class Package implements PackageInterface
+final class ConnectManager implements ConnectManagerInterface
 {
     /**
      * Версия пакета для диагностики.
@@ -29,12 +29,12 @@ final class Package implements PackageInterface
     }
 
     /**
-     * Завершает выполнение с ошибкой пакета.
+     * Завершает работу с ошибкой пакета.
      *
-     * @throws PackageException
+     * @throws CloudCastleException
      */
     public function abort(string $message): never
     {
-        throw new PackageException($message);
+        throw new CloudCastleException($message);
     }
 }
