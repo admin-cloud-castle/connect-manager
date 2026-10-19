@@ -6,16 +6,23 @@ build:
           - php-scrutinizer-run
     tests:
       environment:
-        php: 8.3
+        php:
+          version: '8.3'
+          pecl_extensions:
+            - pcov
       tests:
         override:
-          - command: composer test:coverage
+          # Не composer test:coverage: без драйвера PHPUnit даёт exit 1 и бейдж build=error.
+          - command: 'mkdir -p var/coverage && php -d pcov.enabled=1 vendor/bin/phpunit --coverage-clover=var/coverage/clover.xml'
             coverage:
-              file: var/coverage/clover.xml
-              format: clover
+              file: 'var/coverage/clover.xml'
+              format: 'clover'
+
+checks:
+  php: true
 
 filter:
   excluded_paths:
-    - tests/*
-    - tools/*
-    - vendor/*
+    - 'tests/*'
+    - 'tools/*'
+    - 'vendor/*'
