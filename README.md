@@ -1,7 +1,7 @@
 **ru** · [en](.docs/en/README.md) · [de](.docs/de/README.md) · [fr](.docs/fr/README.md) · [es](.docs/es/README.md) · [it](.docs/it/README.md)
 
 <p align="center">
-  <img src="assets/logo.svg" alt="Connect Manager" width="160">
+  <img src="assets/banner.svg" alt="Connect Manager" width="720">
 </p>
 
 # Connect Manager
