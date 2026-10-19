@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CloudCastle\ConnectManager\Tests\Unit;
 
 use CloudCastle\ConnectManager\ConnectManager;
-use CloudCastle\ConnectManager\Exception\CloudCastleException;
+use CloudCastle\ConnectManager\Exception\ConnectManagerException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -26,13 +26,13 @@ final class ConnectManagerTest extends TestCase
     }
 
     /**
-     * Проверяет, что abort() бросает CloudCastleException.
+     * Проверяет, что abort() бросает ConnectManagerException.
      */
-    public function testAbortThrowsCloudCastleException(): void
+    public function testAbortThrowsConnectManagerException(): void
     {
         $package = new ConnectManager();
 
-        $this->expectException(CloudCastleException::class);
+        $this->expectException(ConnectManagerException::class);
         $this->expectExceptionMessage('тест');
 
         $package->abort('тест');

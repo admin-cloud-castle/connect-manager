@@ -9,6 +9,6 @@ use RuntimeException;
 /**
  * Базовое исключение пакета Connect Manager.
  */
-final class CloudCastleException extends RuntimeException
+final class ConnectManagerException extends RuntimeException
 {
 }

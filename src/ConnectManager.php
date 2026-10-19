@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CloudCastle\ConnectManager;
 
 use CloudCastle\ConnectManager\Contract\ConnectManagerInterface;
-use CloudCastle\ConnectManager\Exception\CloudCastleException;
+use CloudCastle\ConnectManager\Exception\ConnectManagerException;
 
 /**
  * Точка входа пакета Connect Manager.
@@ -31,10 +31,10 @@ final class ConnectManager implements ConnectManagerInterface
     /**
      * Завершает работу с ошибкой пакета.
      *
-     * @throws CloudCastleException
+     * @throws ConnectManagerException
      */
     public function abort(string $message): never
     {
-        throw new CloudCastleException($message);
+        throw new ConnectManagerException($message);
     }
 }
