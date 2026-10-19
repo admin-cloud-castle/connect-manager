@@ -61,19 +61,24 @@ jobs:
           XDEBUG_MODE: coverage
         run: composer test:coverage
 
-      - name: Coverage badge JSON
-        if: matrix.php == '8.3'
-        run: php tools/clover-to-coverage-json.php var/coverage/clover.xml var/coverage/coverage.json
-
       - name: Upload coverage artifacts
         if: matrix.php == '8.3'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-clover
-          path: |
-            var/coverage/clover.xml
-            var/coverage/coverage.json
+          path: var/coverage/clover.xml
           if-no-files-found: warn
+
+      - name: Coveralls
+        if: matrix.php == '8.3'
+        uses: coverallsapp/github-action@v2
+        with:
+          file: var/coverage/clover.xml
+          format: clover
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        continue-on-error: true
 
       - name: Tests mutation
         if: matrix.php == '8.3'

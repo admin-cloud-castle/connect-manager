@@ -32,33 +32,11 @@ jobs:
 
       - run: composer install --prefer-dist --no-progress --no-interaction --no-dev || composer install --prefer-dist --no-progress --no-interaction
 
-      - name: Fetch coverage badge from Quality
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          mkdir -p var/coverage site
-          RUN_ID="${{ github.event.workflow_run.id }}"
-          if [[ -z "${RUN_ID}" ]]; then
-            RUN_ID="$(gh run list --workflow=quality.yml --branch=main --status=success --limit=1 --json databaseId --jq '.[0].databaseId // empty')"
-          fi
-          if [[ -n "${RUN_ID}" ]]; then
-            gh run download "${RUN_ID}" --name coverage-clover --dir var/coverage || true
-          fi
-
       - name: Build site
         run: |
           mkdir -p site
-          printf '%s\n' "<!DOCTYPE html><html lang=\"ru\"><head><meta charset=\"utf-8\"><title>${{ github.repository }}</title></head><body><h1>${{ github.repository }}</h1><p>Документация появится после phpDocumentor.</p><p><a href=\"coverage.json\">coverage.json</a></p></body></html>" > site/index.html
-          if [[ -f var/coverage/clover.xml && ! -f var/coverage/coverage.json ]]; then
-            php tools/clover-to-coverage-json.php var/coverage/clover.xml var/coverage/coverage.json
-          fi
-          if [[ -f var/coverage/coverage.json ]]; then
-            cp var/coverage/coverage.json site/coverage.json
-          else
-            printf '%s\n' '{"schemaVersion":1,"label":"coverage","message":"n/a","color":"lightgrey"}' > site/coverage.json
-          fi
+          # Покрытие — Coveralls, не coverage.json на custom domain.
+          printf '%s\n' "<!DOCTYPE html><html lang=\"ru\"><head><meta charset=\"utf-8\"><title>${{ github.repository }}</title></head><body><h1>${{ github.repository }}</h1><p>Документация появится после phpDocumentor.</p><p>Coverage: <a href=\"https://coveralls.io/github/${{ github.repository }}\">Coveralls</a></p></body></html>" > site/index.html
           if [[ -f CNAME ]]; then
             # В корне CNAME может быть host/path; в артефакт Pages — только hostname.
             sed 's|/.*||' CNAME > site/CNAME
