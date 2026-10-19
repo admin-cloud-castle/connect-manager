@@ -11,12 +11,13 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   osv:
     name: OSV Scanner
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: google/osv-scanner-action/osv-scanner-action@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
@@ -29,6 +30,9 @@ jobs:
   trivy:
     name: Trivy filesystem
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Run Trivy

@@ -11,11 +11,13 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   semgrep:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     container:
       image: semgrep/semgrep
     if: (github.actor != 'dependabot[bot]')

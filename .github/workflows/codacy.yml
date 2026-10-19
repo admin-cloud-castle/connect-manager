@@ -40,7 +40,10 @@ jobs:
         env:
           CODACY_PROJECT_TOKEN: ${{ env.CODACY_API_TOKEN }}
         run: |
-          bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/codacy-coverage.sh \
+            https://coverage.codacy.com/get.sh
+          bash /tmp/codacy-coverage.sh report \
             --force-language PHP \
             -r var/coverage/clover.xml || true
         continue-on-error: true
