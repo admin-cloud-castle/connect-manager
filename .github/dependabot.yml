@@ -12,5 +12,14 @@ updates:
       - dependencies
       - ci
 
-  # github-actions: не открываем PR — workflows pinned на commit SHA.
-  # Обновление actions — вручную / в скаффолдере (60-ci.sh).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 14
+    labels:
+      - dependencies
+      - ci
