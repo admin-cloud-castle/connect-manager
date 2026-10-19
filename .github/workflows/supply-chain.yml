@@ -18,8 +18,8 @@ jobs:
     name: OSV Scanner
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: google/osv-scanner-action/osv-scanner-action@v2.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: google/osv-scanner-action/osv-scanner-action@e69cc6c86b31f1e7e23935bbe7031b50e51082de # v2.0.2
         with:
           scan-args: |-
             --recursive
@@ -30,9 +30,9 @@ jobs:
     name: Trivy filesystem
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Run Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -42,7 +42,7 @@ jobs:
         continue-on-error: true
       - name: Upload Trivy SARIF
         if: hashFiles('trivy-results.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@ce5e7eeac396d720fe2d802714996c8ce561e311 # v3
         with:
           sarif_file: trivy-results.sarif
         continue-on-error: true
@@ -52,8 +52,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ secrets.SOCKET_SECURITY_API_KEY != '' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: socketdev/socket-security-action@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: SocketDev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
         continue-on-error: true
         with:
-          api_key: ${{ secrets.SOCKET_SECURITY_API_KEY }}
+          mode: cli
+          socket_api_key: ${{ secrets.SOCKET_SECURITY_API_KEY }}

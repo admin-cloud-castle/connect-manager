@@ -11,10 +11,10 @@ jobs:
   coveralls:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Download latest coverage artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
         continue-on-error: true
         with:
           workflow: quality.yml
@@ -25,7 +25,7 @@ jobs:
 
       - name: Coveralls
         if: hashFiles('var/coverage/clover.xml') != ''
-        uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2
         with:
           file: var/coverage/clover.xml
           format: clover

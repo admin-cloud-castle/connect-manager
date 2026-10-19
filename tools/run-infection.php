@@ -16,5 +16,16 @@ $cmd = [
     '--show-mutations',
 ];
 
-passthru(implode(' ', array_map('escapeshellarg', $cmd)), $code);
-exit($code);
+$descriptors = [
+    0 => STDIN,
+    1 => STDOUT,
+    2 => STDERR,
+];
+
+$process = proc_open($cmd, $descriptors, $pipes);
+if (!is_resource($process)) {
+    fwrite(STDERR, "Не удалось запустить Infection\n");
+    exit(1);
+}
+
+exit(proc_close($process));

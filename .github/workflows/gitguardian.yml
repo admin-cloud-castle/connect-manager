@@ -17,12 +17,12 @@ jobs:
     env:
       GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
       - name: GitGuardian scan
         if: ${{ env.GITGUARDIAN_API_KEY != '' }}
-        uses: GitGuardian/ggshield-action@v1.40.0
+        uses: GitGuardian/ggshield-action@10e9055712b4630c3d514ec16dca25c94b752b52 # v1.56.0
         continue-on-error: true
       - name: Skip notice
         if: ${{ env.GITGUARDIAN_API_KEY == '' }}
