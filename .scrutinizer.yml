@@ -8,15 +8,11 @@ build:
       environment:
         php:
           version: '8.3'
-          pecl_extensions:
-            - pcov
       tests:
         override:
-          # Не composer test:coverage: без драйвера PHPUnit даёт exit 1 и бейдж build=error.
-          - command: 'mkdir -p var/coverage && php -d pcov.enabled=1 vendor/bin/phpunit --coverage-clover=var/coverage/clover.xml'
-            coverage:
-              file: 'var/coverage/clover.xml'
-              format: 'clover'
+          # Только PHPUnit: coverage собирает GitHub Actions/Qlty.
+          # pecl pcov на Scrutinizer часто зависает в очереди; composer test:coverage без драйвера = build error.
+          - vendor/bin/phpunit
 
 checks:
   php: true
