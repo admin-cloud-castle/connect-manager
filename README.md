@@ -4,23 +4,22 @@
 
 Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
 
-<!-- Группа 1: Packagist -->
+<!-- Группа 1: Packagist (только живые shields endpoints) -->
 [![Packagist Version](https://img.shields.io/packagist/v/cloud-castle/connect-manager?label=packagist)](https://packagist.org/packages/cloud-castle/connect-manager)
 [![PHP Version](https://img.shields.io/packagist/php-v/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager)
 [![License](https://img.shields.io/packagist/l/cloud-castle/connect-manager)](LICENSE)
 [![Downloads](https://img.shields.io/packagist/dt/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager)
 [![Monthly Downloads](https://img.shields.io/packagist/dm/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager)
 [![Packagist Stars](https://img.shields.io/packagist/stars/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager)
-[![Dependents](https://img.shields.io/packagist/dependents/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager/dependents)
-[![Suggesters](https://img.shields.io/packagist/suggesters/cloud-castle/connect-manager)](https://packagist.org/packages/cloud-castle/connect-manager/suggesters)
-[![Security Advisories](https://img.shields.io/badge/advisories-none-brightgreen)](https://packagist.org/packages/cloud-castle/connect-manager)
+[![Security Policy](https://img.shields.io/badge/security-policy-blue)](SECURITY.md)
 
-<!-- Группа 2: GitHub -->
+<!-- Группа 2: GitHub Actions + meta -->
 [![Quality](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/quality.yml/badge.svg)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/quality.yml)
 [![CodeQL](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/codeql.yml/badge.svg)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/codeql.yml)
 [![Semgrep](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/semgrep.yml/badge.svg)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/semgrep.yml)
 [![Supply chain](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/supply-chain.yml/badge.svg)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/supply-chain.yml)
 [![GitGuardian](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/gitguardian.yml/badge.svg)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/gitguardian.yml)
+[![Scorecard](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/scorecard.yml/badge.svg)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/scorecard.yml)
 [![GitHub stars](https://img.shields.io/github/stars/admin-cloud-castle/connect-manager?style=flat)](https://github.com/admin-cloud-castle/connect-manager/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/admin-cloud-castle/connect-manager?style=flat)](https://github.com/admin-cloud-castle/connect-manager/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/admin-cloud-castle/connect-manager)](https://github.com/admin-cloud-castle/connect-manager/issues)
@@ -28,20 +27,18 @@ Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
 [![Last commit](https://img.shields.io/github/last-commit/admin-cloud-castle/connect-manager)](https://github.com/admin-cloud-castle/connect-manager/commits/main)
 [![Contributors](https://img.shields.io/github/contributors/admin-cloud-castle/connect-manager)](https://github.com/admin-cloud-castle/connect-manager/graphs/contributors)
 
-<!-- Группа 3: Качество кода -->
-[![PHPStan](https://img.shields.io/badge/PHPStan-max-brightgreen)](https://phpstan.org)
-[![PHPMD](https://img.shields.io/badge/PHPMD-clean-brightgreen)](https://phpmd.org)
-[![PHPCS](https://img.shields.io/badge/PHPCS-PSR--12-brightgreen)](https://github.com/squizlabs/PHP_CodeSniffer)
-[![Psalm](https://img.shields.io/badge/Psalm-level%201-brightgreen)](https://psalm.dev)
+<!-- Группа 3: качество — только живые метрики / ссылки без фейкового green -->
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%20max-blue)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/quality.yml)
+[![PHPCS](https://img.shields.io/badge/PHPCS-PSR--12-blue)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/quality.yml)
+[![Psalm](https://img.shields.io/badge/Psalm-level%201-blue)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/quality.yml)
+[![Infection](https://img.shields.io/badge/Infection-CI-blue)](https://github.com/admin-cloud-castle/connect-manager/actions/workflows/quality.yml)
 [![Coverage](https://coveralls.io/repos/github/admin-cloud-castle/connect-manager/badge.svg?branch=main)](https://coveralls.io/github/admin-cloud-castle/connect-manager?branch=main)
-[![Infection MSI](https://img.shields.io/badge/Infection%20MSI-100%25-brightgreen)](https://infection.github.io)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/admin-cloud-castle/connect-manager/badge)](https://scorecard.dev/viewer/?uri=github.com/admin-cloud-castle/connect-manager)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15549/badge)](https://www.bestpractices.dev/projects/15549)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=admin-cloud-castle_connect-manager&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=admin-cloud-castle_connect-manager)
-[![Scrutinizer](https://scrutinizer-ci.com/g/admin-cloud-castle/connect-manager/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/admin-cloud-castle/connect-manager/)
+[![Snyk](https://snyk.io/test/github/admin-cloud-castle/connect-manager/badge.svg)](https://snyk.io/test/github/admin-cloud-castle/connect-manager)
 [![Codacy](https://img.shields.io/badge/Codacy-dashboard-blue)](https://app.codacy.com/gh/admin-cloud-castle/connect-manager/dashboard)
-[![DeepSource](https://img.shields.io/badge/DeepSource-enabled-blue)](https://app.deepsource.com/gh/admin-cloud-castle/connect-manager/)
-[![Qlty](https://img.shields.io/badge/Qlty-tracked-blue)](https://qlty.sh/gh/admin-cloud-castle/connect-manager)
+[![DeepSource](https://img.shields.io/badge/DeepSource-dashboard-blue)](https://app.deepsource.com/gh/admin-cloud-castle/connect-manager/)
 
 ## Зачем
 
@@ -51,7 +48,7 @@ Production-ready PHP 8.1+ библиотека ConnectManager (CloudCastle).
 
 **Плюсы**
 - PHP 8.1+, строгие типы, полный quality-стек в CI
-- Покрытие ≥99.8%, Infection MSI 100% (цель эталона)
+- Цель эталона: покрытие ≥99.8%, Infection MSI 100% (по Coveralls / Quality CI)
 - Минимум runtime-зависимостей
 
 **Минусы** (допустимые по эталону CloudCastle)
