@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -78,6 +79,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        continue-on-error: true
+
+      - name: Qlty coverage
+        if: matrix.php == '8.3'
+        uses: qltysh/qlty-action/coverage@v2
+        with:
+          oidc: true
+          files: var/coverage/clover.xml
         continue-on-error: true
 
       - name: Tests mutation
