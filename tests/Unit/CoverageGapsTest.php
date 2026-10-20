@@ -672,8 +672,9 @@ final class CoverageGapsTest extends TestCase
 
         $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
         self::assertNotFalse($key);
-        openssl_pkey_export($key, $pem);
-        self::assertIsString($pem);
+        $pemBuffer = '';
+        self::assertTrue(openssl_pkey_export($key, $pemBuffer));
+        $pem = $this->requireExportedPem($pemBuffer);
         $parts = $helper->load(AuthCredentials::withPublicKey('u', $pem));
         $parts['algorithm'] = 'rsa-sha2-512';
         $request = $helper->buildRequest(str_repeat("\x03", 32), 'u', $parts);
@@ -689,8 +690,9 @@ final class CoverageGapsTest extends TestCase
         if (defined('OPENSSL_KEYTYPE_EC')) {
             $ec = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
             if ($ec !== false) {
-                openssl_pkey_export($ec, $ecPem);
-                self::assertIsString($ecPem);
+                $ecPemBuffer = '';
+                self::assertTrue(openssl_pkey_export($ec, $ecPemBuffer));
+                $ecPem = $this->requireExportedPem($ecPemBuffer);
 
                 try {
                     $helper->load(AuthCredentials::withPublicKey('u', $ecPem));
@@ -818,5 +820,16 @@ final class CoverageGapsTest extends TestCase
     {
         $ips = (new \CloudCastle\ConnectManager\Security\PhpDnsResolver())->resolve('one.one.one.one');
         self::assertNotSame([], $ips);
+    }
+
+    /**
+     * @param mixed $exported Результат openssl_pkey_export by-ref
+     */
+    private function requireExportedPem(mixed $exported): string
+    {
+        self::assertIsString($exported);
+        self::assertNotSame('', $exported);
+
+        return $exported;
     }
 }

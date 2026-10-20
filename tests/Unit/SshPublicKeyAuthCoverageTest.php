@@ -44,8 +44,9 @@ final class SshPublicKeyAuthCoverageTest extends TestCase
     {
         $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
         self::assertNotFalse($key);
-        openssl_pkey_export($key, $pem);
-        self::assertIsString($pem);
+        $pemBuffer = '';
+        self::assertTrue(openssl_pkey_export($key, $pemBuffer));
+        $pem = $this->requireExportedPem($pemBuffer);
         $helper = new SshPublicKeyAuth();
         $parts = $helper->load(AuthCredentials::withPublicKey('u', $pem));
         $request = $helper->buildRequest(str_repeat("\x04", 32), 'u', $parts);
@@ -112,5 +113,16 @@ final class SshPublicKeyAuthCoverageTest extends TestCase
         $method = new ReflectionMethod(SshPublicKeyAuth::class, 'requireSignatureBytes');
         $this->expectException(ConnectionException::class);
         $method->invoke(new SshPublicKeyAuth(), '', 'Test');
+    }
+
+    /**
+     * @param mixed $exported Результат openssl_pkey_export by-ref
+     */
+    private function requireExportedPem(mixed $exported): string
+    {
+        self::assertIsString($exported);
+        self::assertNotSame('', $exported);
+
+        return $exported;
     }
 }
