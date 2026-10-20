@@ -6,11 +6,9 @@ namespace CloudCastle\ConnectManager\Driver\Ssh;
 
 use CloudCastle\ConnectManager\Contract\ConnectionInterface;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
-use phpseclib3\Net\SFTP;
-use phpseclib3\Net\SSH2;
 
 /**
- * Прикладное SSH/SFTP соединение (phpseclib) в контракте ConnectionInterface.
+ * Прикладное SSH/SFTP соединение (нативная сессия) в контракте ConnectionInterface.
  *
  * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  */
@@ -19,11 +17,10 @@ final class SshConnection implements ConnectionInterface
     private bool $open = true;
 
     /**
-     * @param SSH2|SFTP            $session  Активная сессия
      * @param array<string, mixed> $metadata Метаданные
      */
     public function __construct(
-        private readonly SSH2 $session,
+        private readonly SshSessionInterface $session,
         private readonly string $protocol,
         private readonly ?string $remoteEndpoint,
         private readonly array $metadata = [],
@@ -89,17 +86,8 @@ final class SshConnection implements ConnectionInterface
     public function read(int $length): string
     {
         $this->assertOpen();
-        $data = $this->session->read();
 
-        if (!is_string($data) || $data === '') {
-            return '';
-        }
-
-        if ($length < 1) {
-            return $data;
-        }
-
-        return substr($data, 0, $length);
+        return $this->session->read($length);
     }
 
     /**
@@ -153,27 +141,20 @@ final class SshConnection implements ConnectionInterface
     public function exec(string $command): string
     {
         $this->assertOpen();
-        $output = $this->session->exec($command);
 
-        if ($output === false) {
-            throw new ConnectionException('SSH exec не удался: ' . $command);
-        }
-
-        return is_string($output) ? $output : '';
+        return $this->session->exec($command);
     }
 
     /**
-     * Открывает SFTP-клиент (требует SFTP-сессию).
+     * Открывает SFTP-клиент.
      *
      * @throws ConnectionException
      */
     public function sftp(): SftpClient
     {
-        if (!$this->session instanceof SFTP) {
-            throw new ConnectionException('SFTP доступен только для протокола sftp');
-        }
+        $this->assertOpen();
 
-        return new SftpClient($this->session);
+        return $this->session->openSftp();
     }
 
     /**

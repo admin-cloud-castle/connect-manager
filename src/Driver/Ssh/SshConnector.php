@@ -11,28 +11,21 @@ use CloudCastle\ConnectManager\Contract\SshConnectorInterface;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
 use CloudCastle\ConnectManager\Security\EndpointGuard;
 use CloudCastle\ConnectManager\Security\PinnedEndpoint;
-use phpseclib3\Net\SFTP;
-use phpseclib3\Net\SSH2;
 
 /**
- * Устанавливает прикладное SSH/SFTP соединение через phpseclib.
+ * Устанавливает прикладное SSH/SFTP через нативный NativeSshSession (без Composer-зависимостей).
  *
- * @SuppressWarnings("PHPMD.StaticAccess")
+ * @SuppressWarnings("PHPMD.ErrorControlOperator")
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  */
 final class SshConnector implements SshConnectorInterface
 {
-    private readonly SshAuthApplier $authApplier;
-
     /**
-     * @param EndpointGuard       $guard       SSRF-guard
-     * @param SshAuthApplier|null $authApplier Аутентификация
+     * @param EndpointGuard $guard SSRF-guard
      */
     public function __construct(
         private readonly EndpointGuard $guard = new EndpointGuard(),
-        ?SshAuthApplier $authApplier = null,
     ) {
-        $this->authApplier = $authApplier ?? new SshAuthApplier();
     }
 
     /**
@@ -55,15 +48,22 @@ final class SshConnector implements SshConnectorInterface
         $pinned = $this->guard->prepare($endpoint, $options);
         [$host, $port] = $this->hostPort($pinned, $endpoint);
         $timeout = (int) max(1, $options->connectTimeout());
-        $session = $protocolId === 'sftp'
-            ? new SFTP($host, $port, $timeout)
-            : new SSH2($host, $port, $timeout);
+        $remote = $host . ':' . $port;
+        $errno = 0;
+        $errstr = '';
+        $stream = @stream_socket_client(
+            'tcp://' . (str_contains($host, ':') ? '[' . $host . ']' : $host) . ':' . $port,
+            $errno,
+            $errstr,
+            (float) $timeout,
+        );
 
-        $this->authApplier->login($session, $auth);
-
-        if (!$session->isConnected()) {
-            throw new ConnectionException(sprintf('Не удалось установить %s к %s:%d', $protocolId, $host, $port));
+        if ($stream === false) {
+            throw new ConnectionException(sprintf('TCP к %s не удался: [%d] %s', $remote, $errno, $errstr));
         }
+
+        stream_set_timeout($stream, $timeout);
+        $session = new NativeSshSession($stream, $auth, $protocolId === 'sftp');
 
         return new SshConnection(
             $session,
@@ -73,6 +73,7 @@ final class SshConnector implements SshConnectorInterface
                 'capability' => 'ssh-application',
                 'native' => true,
                 'transport' => 'tcp',
+                'engine' => 'native-php',
                 'pinned_ips' => $pinned->resolvedIps(),
                 'host' => $host,
                 'port' => $port,
@@ -82,6 +83,8 @@ final class SshConnector implements SshConnectorInterface
 
     /**
      * @return array{0: string, 1: int}
+     *
+     * @throws ConnectionException
      */
     private function hostPort(PinnedEndpoint $pinned, string $originalEndpoint): array
     {

@@ -26,6 +26,9 @@
         <testsuite name="performance">
             <directory>tests/Performance</directory>
         </testsuite>
+        <testsuite name="comparison">
+            <directory>tests/Comparison</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>

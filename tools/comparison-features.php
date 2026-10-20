@@ -119,12 +119,8 @@ return [
         'packages' => $yes(['ours' => true]),
     ],
     [
-        'feature' => 'Минимум runtime-зависимостей (только phpseclib для SSH/SFTP)',
-        'packages' => $yes(['ours' => true]),
-    ],
-    [
         'feature' => 'Ноль runtime-зависимостей Composer',
-        'packages' => $yes(['clue/socket-raw' => true]),
+        'packages' => $yes(['ours' => true, 'clue/socket-raw' => true]),
     ],
     [
         'feature' => 'Raw sockets (ext-sockets)',
