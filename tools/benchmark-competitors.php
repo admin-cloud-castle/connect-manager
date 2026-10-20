@@ -11,7 +11,7 @@ if (extension_loaded('xdebug') && (string) ini_get('xdebug.mode') !== 'off' && (
     fwrite(STDERR, "предупреждение: xdebug активен — ns/op зашумлены; запускайте с -d xdebug.mode=off\n");
 }
 
-require_once dirname(__DIR__) . '/vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Amp\Socket\ConnectContext;
 use Amp\Socket\DnsSocketConnector;
@@ -71,37 +71,27 @@ $benches = [
             $c->close();
         }, $iterations, $warm);
     },
-    'react_connector_construct' => static function () use ($measure, $iterations, $warm): array {
-        return $measure(static function (): void {
-            $connector = new Connector();
-            unset($connector);
-        }, $iterations, $warm);
-    },
-    'amphp_connector_construct' => static function () use ($measure, $iterations, $warm): array {
-        return $measure(static function (): void {
-            $connector = new DnsSocketConnector();
-            $context = new ConnectContext();
-            unset($connector, $context);
-        }, $iterations, $warm);
-    },
-    'guzzle_client_construct' => static function () use ($measure, $iterations, $warm): array {
-        return $measure(static function (): void {
-            $client = new Client(['http_errors' => false]);
-            unset($client);
-        }, $iterations, $warm);
-    },
-    'socket_raw_factory_construct' => static function () use ($measure, $iterations, $warm): array {
-        return $measure(static function (): void {
-            $factory = new Factory();
-            unset($factory);
-        }, $iterations, $warm);
-    },
-    'phpseclib_class_exists' => static function () use ($measure, $iterations, $warm): array {
-        return $measure(static function (): void {
-            class_exists(\phpseclib3\Net\SSH2::class);
-            class_exists(\phpseclib3\Net\SFTP::class);
-        }, $iterations, $warm);
-    },
+    'react_connector_construct' => static fn (): array => $measure(static function (): void {
+        $connector = new Connector();
+        unset($connector);
+    }, $iterations, $warm),
+    'amphp_connector_construct' => static fn (): array => $measure(static function (): void {
+        $connector = new DnsSocketConnector();
+        $context = new ConnectContext();
+        unset($connector, $context);
+    }, $iterations, $warm),
+    'guzzle_client_construct' => static fn (): array => $measure(static function (): void {
+        $client = new Client(['http_errors' => false]);
+        unset($client);
+    }, $iterations, $warm),
+    'socket_raw_factory_construct' => static fn (): array => $measure(static function (): void {
+        $factory = new Factory();
+        unset($factory);
+    }, $iterations, $warm),
+    'phpseclib_class_exists' => static fn (): array => $measure(static function (): void {
+        class_exists(\phpseclib3\Net\SSH2::class);
+        class_exists(\phpseclib3\Net\SFTP::class);
+    }, $iterations, $warm),
 ];
 
 $results = [
@@ -122,7 +112,7 @@ foreach ($benches as $name => $runner) {
     ));
 }
 
-$dir = dirname(__DIR__) . '/var/benchmark';
+$dir = __DIR__ . '/../var/benchmark';
 
 if (!is_dir($dir) && !mkdir($dir, 0o775, true) && !is_dir($dir)) {
     fwrite(STDERR, "cannot create {$dir}\n");

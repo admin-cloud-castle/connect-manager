@@ -60,7 +60,7 @@ final class SshPublicKeyAuth
             return $this->rsaParts($key, $details['rsa'] ?? null);
         }
 
-        if (defined('OPENSSL_KEYTYPE_ED25519') && $type === OPENSSL_KEYTYPE_ED25519) {
+        if (defined('OPENSSL_KEYTYPE_ED25519') && $type === constant('OPENSSL_KEYTYPE_ED25519')) {
             return $this->ed25519Parts($key, $details['ed25519'] ?? null);
         }
 

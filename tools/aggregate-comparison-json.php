@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-$dir = dirname(__DIR__) . '/var/benchmark';
+$dir = __DIR__ . '/../var/benchmark';
 $globbed = glob($dir . '/comparison-*.json');
 $files = is_array($globbed) ? $globbed : [];
 $files = array_values(array_filter($files, static fn (string $f): bool => !str_ends_with($f, 'comparison-avg.json')));

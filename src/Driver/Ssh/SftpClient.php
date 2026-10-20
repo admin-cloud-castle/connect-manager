@@ -17,8 +17,6 @@ final class SftpClient
 {
     /**
      * Счётчик request-id для SSH_FXP_* пакетов (нарастающий с 1).
-     *
-     * @var int
      */
     private int $requestId = 0;
 

@@ -17,8 +17,6 @@ final class SshConnection implements ConnectionInterface
 {
     /**
      * Локальный флаг «соединение ещё не закрыто через close()».
-     *
-     * @var bool
      */
     private bool $open = true;
 

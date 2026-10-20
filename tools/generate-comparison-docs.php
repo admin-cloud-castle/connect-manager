@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-require_once dirname(__DIR__) . '/vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use CloudCastle\ConnectManager\Tools\ComparisonLoader;
 
@@ -106,13 +106,9 @@ $fmtMem = static function (int $bytes): string {
     return $bytes . ' B';
 };
 
-$nsOf = static function (string $key) use ($benches): float {
-    return $benches[$key]['ns_per_op'] ?? 0.0;
-};
+$nsOf = (static fn (string $key): float => $benches[$key]['ns_per_op'] ?? 0.0);
 
-$memOf = static function (string $key) use ($benches): int {
-    return $benches[$key]['memory_delta'] ?? 0;
-};
+$memOf = (static fn (string $key): int => $benches[$key]['memory_delta'] ?? 0);
 
 $constructNs = [
     'ours' => $nsOf('ours_logical_connect'),

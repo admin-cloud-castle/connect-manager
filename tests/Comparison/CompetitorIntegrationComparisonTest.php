@@ -116,7 +116,7 @@ final class CompetitorIntegrationComparisonTest extends TestCase
                 $connected = true;
                 $connection->close();
             },
-            static function (\Throwable $reason): void {
+            static function (\Throwable $reason): never {
                 self::fail('React connect failed: ' . $reason->getMessage());
             },
         );

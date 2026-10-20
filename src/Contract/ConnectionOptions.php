@@ -196,21 +196,50 @@ final class ConnectionOptions
         ?AuthCredentials $auth = null,
         bool $replaceAuth = false,
     ): self {
-        $nextAuth = $this->auth;
+        return new self(
+            $this->preferFloat($connectTimeout, $this->connectTimeout),
+            $this->preferFloat($ioTimeout, $this->ioTimeout),
+            $this->preferBool($verifyPeer, $this->verifyPeer),
+            $this->preferBool($blockPrivateAddresses, $this->blockPrivateAddresses),
+            $this->preferBool($allowInsecure, $this->allowInsecure),
+            $this->preferContext($streamContext, $this->streamContext),
+            $this->preferString($mode, $this->mode),
+            $this->preferAuth($auth, $this->auth, $replaceAuth),
+        );
+    }
 
-        if ($replaceAuth || $auth instanceof AuthCredentials) {
-            $nextAuth = $auth;
+    private function preferFloat(?float $override, float $current): float
+    {
+        return $override ?? $current;
+    }
+
+    private function preferBool(?bool $override, bool $current): bool
+    {
+        return $override ?? $current;
+    }
+
+    private function preferString(?string $override, string $current): string
+    {
+        return $override ?? $current;
+    }
+
+    /**
+     * @param array<string, mixed>|null $override
+     * @param array<string, mixed>      $current
+     *
+     * @return array<string, mixed>
+     */
+    private function preferContext(?array $override, array $current): array
+    {
+        return $override ?? $current;
+    }
+
+    private function preferAuth(?AuthCredentials $override, ?AuthCredentials $current, bool $replace): ?AuthCredentials
+    {
+        if ($replace || $override instanceof AuthCredentials) {
+            return $override;
         }
 
-        return new self(
-            $connectTimeout ?? $this->connectTimeout,
-            $ioTimeout ?? $this->ioTimeout,
-            $verifyPeer ?? $this->verifyPeer,
-            $blockPrivateAddresses ?? $this->blockPrivateAddresses,
-            $allowInsecure ?? $this->allowInsecure,
-            $streamContext ?? $this->streamContext,
-            $mode ?? $this->mode,
-            $nextAuth,
-        );
+        return $current;
     }
 }

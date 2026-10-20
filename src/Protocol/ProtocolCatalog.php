@@ -145,6 +145,16 @@ final class ProtocolCatalog
      */
     private static function layerFiveToSeven(): \Generator
     {
+        yield from self::layerFiveIndustrial();
+        yield from self::layerSevenApplicationFirst();
+        yield from self::layerSevenApplicationSecond();
+    }
+
+    /**
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function layerFiveIndustrial(): \Generator
+    {
         yield new ProtocolDefinition('can', 'Controller Area Network', 0, 'raw', false, 'can');
         yield new ProtocolDefinition('cip', 'Common Industrial Protocol', 0, 'tcp', true, 'cip');
         yield new ProtocolDefinition('dcc', 'Digital Command Control', 0, 'raw', false, 'dcc');
@@ -165,6 +175,13 @@ final class ProtocolCatalog
         yield new ProtocolDefinition('dns', 'DNS', 7, 'udp', true, 'dns');
         yield new ProtocolDefinition('dhcp', 'DHCP', 7, 'udp', true, 'dhcp');
         yield new ProtocolDefinition('ed2k', 'eDonkey2000', 7, 'tcp', true, 'ed2k');
+    }
+
+    /**
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function layerSevenApplicationFirst(): \Generator
+    {
         yield new ProtocolDefinition('ftp', 'FTP', 7, 'tcp', true, 'ftp');
         yield new ProtocolDefinition('finger', 'Finger', 7, 'tcp', true, 'finger');
         yield new ProtocolDefinition('gnutella', 'Gnutella', 7, 'tcp', true, 'gnutella');
@@ -185,6 +202,13 @@ final class ProtocolCatalog
         yield new ProtocolDefinition('nntp', 'NNTP', 7, 'tcp', true, 'nntp');
         yield new ProtocolDefinition('ntp', 'NTP', 7, 'udp', true, 'ntp');
         yield new ProtocolDefinition('ntcip', 'NTCIP', 7, 'tcp', true, 'ntcip');
+    }
+
+    /**
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function layerSevenApplicationSecond(): \Generator
+    {
         yield new ProtocolDefinition('pop3', 'POP3', 7, 'tcp', true, 'pop3');
         yield new ProtocolDefinition('pop3s', 'POP3S', 7, 'tcp', true, 'pop3s');
         yield new ProtocolDefinition('radius', 'RADIUS', 7, 'udp', true, 'radius');

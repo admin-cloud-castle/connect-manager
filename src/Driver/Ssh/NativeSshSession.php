@@ -22,6 +22,7 @@ use GMP;
  * @SuppressWarnings("PHPMD.StaticAccess")
  * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
  * @SuppressWarnings("PHPMD.EmptyCatchBlock")
+ * @SuppressWarnings("PHPMD.TooManyMethods")
  */
 final class NativeSshSession implements SshSessionInterface, SftpChannelInterface
 {
@@ -168,64 +169,46 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
 
     /**
      * Транспорт пакетов.
-     *
-     * @var SshWire
      */
-    private SshWire $wire;
+    private readonly SshWire $wire;
 
     /**
      * Identification string сервера без CR/LF.
-     *
-     * @var string
      */
     private string $serverId = '';
 
     /**
      * Exchange hash H — session id для USERAUTH.
-     *
-     * @var string
      */
     private string $sessionId = '';
 
     /**
      * true после успешной аутентификации до disconnect().
-     *
-     * @var bool
      */
     private bool $connected = false;
 
     /**
      * true после успешного INIT/VERSION SFTP subsystem.
-     *
-     * @var bool
      */
     private bool $sftpReady = false;
 
     /**
      * Локальный channel id (сейчас всегда 0).
-     *
-     * @var int
      */
     private int $localChannel = 0;
 
     /**
      * Remote channel id из OPEN_CONFIRMATION; 0 — канал не открыт.
-     *
-     * @var int
      */
     private int $remoteChannel = 0;
 
     /**
      * Накопленные CHANNEL_DATA до чтения приложением.
-     *
-     * @var string
      */
     private string $channelBuffer = '';
 
     /**
      * Получен CHANNEL_EOF или CHANNEL_CLOSE.
-     *
-     * @var bool
      */
     private bool $channelEof = false;
 
@@ -472,8 +455,23 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
      */
     private function performKeyExchange(): void
     {
-        $cookie = random_bytes(16);
-        $clientKex = chr(self::MSG_KEXINIT) . $cookie
+        $clientKex = $this->buildClientKexInit();
+        $this->wire->send($clientKex);
+        $serverKex = $this->expectType(self::MSG_KEXINIT);
+        [$eBytes, $fBytes, $hostKey, $kMpint] = $this->exchangeDiffieHellman();
+        $hash = $this->computeExchangeHash($clientKex, $serverKex, $hostKey, $eBytes, $fBytes, $kMpint);
+        $this->sessionId = $hash;
+        $this->wire->send(chr(self::MSG_NEWKEYS));
+        $this->expectType(self::MSG_NEWKEYS);
+        $this->enableKeysFromSharedSecret($kMpint, $hash);
+    }
+
+    /**
+     * Собирает SSH_MSG_KEXINIT клиента (group14-sha256 / aes128-ctr / hmac-sha2-256).
+     */
+    private function buildClientKexInit(): string
+    {
+        return chr(self::MSG_KEXINIT) . random_bytes(16)
             . SshBinary::nameList(['diffie-hellman-group14-sha256'])
             . SshBinary::nameList(['rsa-sha2-256', 'rsa-sha2-512', 'ssh-rsa', 'ssh-ed25519'])
             . SshBinary::nameList(['aes128-ctr'])
@@ -486,33 +484,55 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
             . SshBinary::nameList([])
             . "\x00"
             . SshBinary::uint32(0);
-        $this->wire->send($clientKex);
+    }
 
-        $serverKex = $this->expectType(self::MSG_KEXINIT);
-        $p = gmp_init(self::GROUP14_P, 16);
-        $x = gmp_random_bits(256);
-        $e = gmp_powm(gmp_init(2), $x, $p);
-        $eBytes = $this->gmpToBytes($e);
+    /**
+     * DH group14: отправляет e, читает f/hostKey, считает K.
+     *
+     * @return array{0: string, 1: string, 2: string, 3: string} eBytes, fBytes, hostKey, K mpint
+     *
+     * @throws ConnectionException При некорректном f
+     */
+    private function exchangeDiffieHellman(): array
+    {
+        $prime = gmp_init(self::GROUP14_P, 16);
+        $secret = gmp_random_bits(256);
+        $public = gmp_powm(gmp_init(2), $secret, $prime);
+        $eBytes = $this->gmpToBytes($public);
         $this->wire->send(chr(self::MSG_KEXDH_INIT) . SshBinary::mpint($eBytes));
-
         $reply = $this->expectType(self::MSG_KEXDH_REPLY);
         $offset = 1;
         $hostKey = SshBinary::readString($reply, $offset);
         $fBytes = SshBinary::readMpint($reply, $offset);
         SshBinary::readString($reply, $offset);
+
         if ($fBytes === '') {
             throw new ConnectionException('Некорректный DH параметр f');
         }
 
-        $f = gmp_import($fBytes);
+        $remotePublic = gmp_import($fBytes);
 
-        if (gmp_cmp($f, 0) === 0) {
+        if (gmp_cmp($remotePublic, 0) === 0) {
             throw new ConnectionException('Некорректный DH параметр f');
         }
 
-        $k = gmp_powm($f, $x, $p);
-        $kMpint = SshBinary::mpint($this->gmpToBytes($k));
-        $hash = hash(
+        $shared = gmp_powm($remotePublic, $secret, $prime);
+
+        return [$eBytes, $fBytes, $hostKey, SshBinary::mpint($this->gmpToBytes($shared))];
+    }
+
+    /**
+     * Считает exchange hash H (SHA-256) по RFC 4253 / group14-sha256.
+     */
+    private function computeExchangeHash(
+        string $clientKex,
+        string $serverKex,
+        string $hostKey,
+        string $eBytes,
+        string $fBytes,
+        string $kMpint,
+    ): string {
+        return hash(
             'sha256',
             SshBinary::sshString(self::CLIENT_ID)
             . SshBinary::sshString($this->serverId)
@@ -524,10 +544,13 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
             . $kMpint,
             true,
         );
-        $this->sessionId = $hash;
+    }
 
-        $this->wire->send(chr(self::MSG_NEWKEYS));
-        $this->expectType(self::MSG_NEWKEYS);
+    /**
+     * Выводит ключи AES/HMAC из K||H и включает шифрование на wire.
+     */
+    private function enableKeysFromSharedSecret(string $kMpint, string $hash): void
+    {
         $this->wire->enableEncryption(
             $this->deriveKey($kMpint, $hash, 'C', 16),
             $this->deriveKey($kMpint, $hash, 'D', 16),

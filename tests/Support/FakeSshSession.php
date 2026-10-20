@@ -18,18 +18,12 @@ final class FakeSshSession implements SshSessionInterface, SftpChannelInterface
 
     private string $inbox = '';
 
-    /** @var list<string> */
-    private array $sftpReplies = [];
-
     /**
      * @param string       $execOutput  Ответ exec()
      * @param list<string> $sftpReplies Очередь SFTP-ответов
      */
-    public function __construct(
-        private readonly string $execOutput = 'ok',
-        array $sftpReplies = [],
-    ) {
-        $this->sftpReplies = $sftpReplies;
+    public function __construct(private readonly string $execOutput = 'ok', private array $sftpReplies = [])
+    {
     }
 
     /**
