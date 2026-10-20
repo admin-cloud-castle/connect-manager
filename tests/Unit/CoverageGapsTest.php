@@ -25,6 +25,7 @@ use CloudCastle\ConnectManager\Exception\ConnectionException;
 use CloudCastle\ConnectManager\Exception\SecurityException;
 use CloudCastle\ConnectManager\Protocol\ProtocolRegistry;
 use CloudCastle\ConnectManager\Security\EndpointGuard;
+use CloudCastle\ConnectManager\Security\PhpDnsResolver;
 use CloudCastle\ConnectManager\Security\PinnedEndpoint;
 use CloudCastle\ConnectManager\Tests\Support\BufferConnection;
 use CloudCastle\ConnectManager\Tests\Support\FakeSshSession;
@@ -42,6 +43,12 @@ use ReflectionMethod;
  * @SuppressWarnings("PHPMD.StaticAccess")
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  * @SuppressWarnings("PHPMD.TooManyPublicMethods")
+ * @SuppressWarnings("PHPMD.TooManyMethods")
+ * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
+ * @SuppressWarnings("PHPMD.EmptyCatchBlock")
+ * @SuppressWarnings("PHPMD.ShortVariable")
+ * @SuppressWarnings("PHPMD.UnusedFormalParameter")
+ * @SuppressWarnings("PHPMD.MissingImport")
  */
 #[CoversClass(PinnedEndpoint::class)]
 #[CoversClass(EndpointGuard::class)]
@@ -818,7 +825,7 @@ final class CoverageGapsTest extends TestCase
      */
     public function testPhpDnsResolverAaaaRecords(): void
     {
-        $ips = (new \CloudCastle\ConnectManager\Security\PhpDnsResolver())->resolve('one.one.one.one');
+        $ips = (new PhpDnsResolver())->resolve('one.one.one.one');
         self::assertNotSame([], $ips);
     }
 

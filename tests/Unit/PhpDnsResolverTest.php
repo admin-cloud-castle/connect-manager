@@ -11,6 +11,8 @@ use ReflectionMethod;
 
 /**
  * Системный DNS-резолвер (A/AAAA и fallback).
+ *
+ * @SuppressWarnings("PHPMD.ShortVariable")
  */
 #[CoversClass(PhpDnsResolver::class)]
 final class PhpDnsResolverTest extends TestCase

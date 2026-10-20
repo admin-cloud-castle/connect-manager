@@ -14,6 +14,8 @@ use ReflectionMethod;
 
 /**
  * Приватные ветки EndpointGuard (replaceHost / replaceHostInUrl).
+ *
+ * @SuppressWarnings("PHPMD.StaticAccess")
  */
 #[CoversClass(EndpointGuard::class)]
 #[UsesClass(ConnectionOptions::class)]

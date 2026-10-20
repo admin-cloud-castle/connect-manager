@@ -14,6 +14,8 @@ use ReflectionMethod;
 
 /**
  * Дополнительные ветки SshPublicKeyAuth (ошибки и альтернативные алгоритмы).
+ *
+ * @SuppressWarnings("PHPMD.StaticAccess")
  */
 #[CoversClass(SshPublicKeyAuth::class)]
 #[UsesClass(AuthCredentials::class)]
