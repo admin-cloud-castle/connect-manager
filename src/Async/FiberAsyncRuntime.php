@@ -46,7 +46,7 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
                 continue;
             }
 
-            $this->wait($value['stream'], $value['op'], $value['timeout']);
+            $this->wait($value['stream'], $value['op'], (float) $value['timeout']);
             $value = $fiber->resume();
         }
 
@@ -74,33 +74,31 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
     /**
      * Проверяет payload ожидания I/O.
      *
-     *
      * @phpstan-assert-if-true array{op: string, stream: mixed, timeout: float|int} $value
      * @psalm-assert-if-true array{op: string, stream: mixed, timeout: float|int} $value
      */
     private function isWaitPayload(mixed $value): bool
     {
-        if (!is_array($value)) {
+        if (!$this->hasWaitKeys($value)) {
             return false;
         }
 
-        if (!array_key_exists('op', $value)) {
-            return false;
-        }
+        /** @var array{op: mixed, stream: mixed, timeout: mixed} $value */
+        return is_string($value['op'])
+            && (is_int($value['timeout']) || is_float($value['timeout']));
+    }
 
-        if (!array_key_exists('stream', $value)) {
-            return false;
-        }
-
-        if (!array_key_exists('timeout', $value)) {
-            return false;
-        }
-
-        if (!is_string($value['op'])) {
-            return false;
-        }
-
-        return is_int($value['timeout']) || is_float($value['timeout']);
+    /**
+     * Наличие обязательных ключей payload.
+     *
+     * @phpstan-assert-if-true array<mixed> $value
+     */
+    private function hasWaitKeys(mixed $value): bool
+    {
+        return is_array($value)
+            && array_key_exists('op', $value)
+            && array_key_exists('stream', $value)
+            && array_key_exists('timeout', $value);
     }
 
     /**
@@ -124,7 +122,7 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
     }
 
     /**
-     * Блокирующий select по одному stream.
+     * Select по одному stream с дробным таймаутом.
      *
      * @param mixed $stream Stream resource
      *
@@ -136,31 +134,14 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
             throw new TimeoutException('Ожидался stream resource');
         }
 
-        $meta = stream_get_meta_data($stream);
-        $streamType = $meta['stream_type'];
-
-        if ($streamType === 'MEMORY' || $streamType === 'TEMP') {
+        if ($this->isMemoryStream($stream)) {
             return;
         }
 
-        $seconds = max(1, (int) $timeoutSeconds);
-        $read = null;
-        $write = null;
-
-        if ($op === 'read') {
-            $read = [$stream];
-        }
-
-        if ($op === 'write') {
-            $write = [$stream];
-        }
-
-        if ($read === null && $write === null) {
-            throw new TimeoutException(sprintf('Неизвестная операция ожидания: %s', $op));
-        }
-
+        [$read, $write] = $this->bucketsForOp($stream, $op);
+        [$seconds, $microseconds] = $this->splitTimeout($timeoutSeconds);
         $except = null;
-        $result = $this->selector->select($read, $write, $except, $seconds);
+        $result = $this->selector->select($read, $write, $except, $seconds, $microseconds);
 
         if ($result === false) {
             throw new TimeoutException(sprintf('Ошибка ожидания %s', $op));
@@ -169,5 +150,63 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
         if ($result === 0) {
             throw new TimeoutException(sprintf('Таймаут ожидания %s', $op));
         }
+    }
+
+    /**
+     * MEMORY/TEMP не требуют select.
+     *
+     * @param resource $stream
+     */
+    private function isMemoryStream(mixed $stream): bool
+    {
+        $meta = stream_get_meta_data($stream);
+        $streamType = $meta['stream_type'];
+
+        return $streamType === 'MEMORY' || $streamType === 'TEMP';
+    }
+
+    /**
+     * Корзины read/write для операции.
+     *
+     * @param resource $stream
+     *
+     * @return array{0: array<int, resource>|null, 1: array<int, resource>|null}
+     *
+     * @throws TimeoutException
+     */
+    private function bucketsForOp(mixed $stream, string $op): array
+    {
+        if ($op === 'read') {
+            return [[$stream], null];
+        }
+
+        if ($op === 'write') {
+            return [null, [$stream]];
+        }
+
+        throw new TimeoutException(sprintf('Неизвестная операция ожидания: %s', $op));
+    }
+
+    /**
+     * Делит float-таймаут на секунды и микросекунды без округления вверх до 1с.
+     *
+     * @return array{0: int, 1: int}
+     */
+    private function splitTimeout(float $timeoutSeconds): array
+    {
+        if ($timeoutSeconds <= 0.0) {
+            return [0, 0];
+        }
+
+        $seconds = (int) $timeoutSeconds;
+        $fraction = $timeoutSeconds - (float) $seconds;
+        $microseconds = (int) round($fraction * 1_000_000.0);
+
+        if ($microseconds >= 1_000_000) {
+            ++$seconds;
+            $microseconds = 0;
+        }
+
+        return [$seconds, $microseconds];
     }
 }

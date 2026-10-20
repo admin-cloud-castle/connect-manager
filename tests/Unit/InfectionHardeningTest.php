@@ -9,10 +9,13 @@ use CloudCastle\ConnectManager\Async\NativeStreamSelector;
 use CloudCastle\ConnectManager\Connection\LogicalConnection;
 use CloudCastle\ConnectManager\Connection\StreamConnection;
 use CloudCastle\ConnectManager\ConnectManager;
+use CloudCastle\ConnectManager\Contract\AuthCredentials;
 use CloudCastle\ConnectManager\Contract\ConnectionFactoryInterface;
 use CloudCastle\ConnectManager\Contract\ConnectionInterface;
 use CloudCastle\ConnectManager\Contract\ConnectionOptions;
 use CloudCastle\ConnectManager\Driver\ConnectionFactory;
+use CloudCastle\ConnectManager\Driver\Ssh\SftpClient;
+use CloudCastle\ConnectManager\Driver\Ssh\SshConnection;
 use CloudCastle\ConnectManager\Driver\StreamOpener;
 use CloudCastle\ConnectManager\Driver\TransportResolver;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
@@ -26,11 +29,13 @@ use CloudCastle\ConnectManager\Protocol\ProtocolDefinition;
 use CloudCastle\ConnectManager\Protocol\ProtocolRegistry;
 use CloudCastle\ConnectManager\Security\EndpointGuard;
 use CloudCastle\ConnectManager\Tests\Support\EmptyChunkStreamWrapper;
+use CloudCastle\ConnectManager\Tests\Support\FakeSshSession;
 use CloudCastle\ConnectManager\Tests\Support\FixedStreamSelector;
 use CloudCastle\ConnectManager\Tests\Support\MixedValues;
 use CloudCastle\ConnectManager\Tests\Support\RecordingStreamSelector;
 use CloudCastle\ConnectManager\Tests\Support\TrackableConnection;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -48,6 +53,8 @@ use ReflectionProperty;
  * @SuppressWarnings("PHPMD.ExcessivePublicCount")
  * @SuppressWarnings("PHPMD.MissingImport")
  * @SuppressWarnings("PHPMD.UnusedFormalParameter")
+ * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
+ * @SuppressWarnings("PHPMD.EmptyCatchBlock")
  */
 #[CoversClass(ConnectManager::class)]
 #[CoversClass(FiberAsyncRuntime::class)]
@@ -68,6 +75,13 @@ use ReflectionProperty;
 #[CoversClass(ProtocolException::class)]
 #[CoversClass(SecurityException::class)]
 #[CoversClass(TimeoutException::class)]
+#[CoversClass(SshConnection::class)]
+#[UsesClass(AuthCredentials::class)]
+#[UsesClass(SftpClient::class)]
+#[UsesClass(FakeSshSession::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Driver\Http\HttpClient::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Driver\Ssh\SshConnector::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Security\PinnedEndpoint::class)]
 final class InfectionHardeningTest extends TestCase
 {
     /**
@@ -391,12 +405,12 @@ final class InfectionHardeningTest extends TestCase
                 static function (ConnectionInterface $connection) use (&$held): never {
                     $held = $connection;
 
-                    throw new \RuntimeException('boom');
+                    throw new ConnectManagerException('boom');
                 },
                 ConnectionOptions::defaults()->allowPrivateAddresses(),
             );
             self::fail('expected');
-        } catch (\RuntimeException $exception) {
+        } catch (ConnectManagerException $exception) {
             self::assertSame('boom', $exception->getMessage());
             self::assertInstanceOf(ConnectionInterface::class, $held);
             self::assertFalse($held->isOpen());
@@ -461,9 +475,9 @@ final class InfectionHardeningTest extends TestCase
     }
 
     /**
-     * Fiber suspend вызывает select; min timeout = 1 секунда.
+     * Fiber suspend передаёт дробный таймаут как секунды + микросекунды.
      */
-    public function testFiberSuspendInvokesSelectorWithMinSecond(): void
+    public function testFiberSuspendInvokesSelectorWithMicroseconds(): void
     {
         $selector = new RecordingStreamSelector(1);
         $runtime = new FiberAsyncRuntime($selector);
@@ -475,7 +489,8 @@ final class InfectionHardeningTest extends TestCase
         });
 
         self::assertSame(1, $selector->calls);
-        self::assertSame(1, $selector->lastSeconds);
+        self::assertSame(0, $selector->lastSeconds);
+        self::assertSame(250000, $selector->lastMicroseconds);
         self::assertFalse($selector->calledInsideFiber);
         fclose($pipes[0]);
         fclose($pipes[1]);
@@ -832,5 +847,100 @@ final class InfectionHardeningTest extends TestCase
 
         error_clear_last();
         self::assertSame('', $opener->lastErrorMessage());
+    }
+
+    /**
+     * ssh/sftp: кастомный connectTimeout не сбрасывается Coalesce-мутантом.
+     */
+    public function testSshSftpNullOptionsCoalesceToDefaults(): void
+    {
+        $auth = AuthCredentials::withPassword('deploy', 'secret');
+        $custom = new ConnectionOptions(12.5);
+        $session = new FakeSshSession();
+        $ssh = new SshConnection($session, 'ssh', 'host.example:22');
+        $factory = $this->createMock(ConnectionFactoryInterface::class);
+        $factory->expects(self::exactly(2))
+            ->method('connect')
+            ->willReturnCallback(
+                static function (
+                    string $protocol,
+                    string $endpoint,
+                    ConnectionOptions $options,
+                ) use (
+                    $auth,
+                    $ssh
+                ): SshConnection {
+                    self::assertContains($protocol, ['ssh', 'sftp']);
+                    self::assertSame('host.example:22', $endpoint);
+                    self::assertSame($auth, $options->auth());
+                    self::assertSame(12.5, $options->connectTimeout());
+
+                    return $ssh;
+                },
+            );
+
+        $manager = new ConnectManager(factory: $factory);
+        self::assertSame($ssh, $manager->ssh('host.example:22', $auth, $custom));
+        $sftp = $manager->sftp('host.example:22', $auth, $custom);
+        self::assertSame($session, $sftp->resource());
+    }
+
+    /**
+     * EndpointGuard: trim, shape, localhost-синонимы, IPv6-скобки, host:port.
+     */
+    public function testEndpointGuardInfectionEdges(): void
+    {
+        $guard = new EndpointGuard();
+
+        try {
+            $guard->prepare("  \t  ", ConnectionOptions::defaults());
+            self::fail('whitespace-only');
+        } catch (SecurityException $exception) {
+            self::assertStringContainsString('Пустой endpoint', $exception->getMessage());
+        }
+
+        try {
+            $guard->prepare("a\nb", ConnectionOptions::defaults());
+            self::fail('control');
+        } catch (SecurityException $exception) {
+            self::assertStringContainsString('управляющие', $exception->getMessage());
+        }
+
+        $this->assertBlockedLocalHost($guard, 'localhost');
+        $this->assertBlockedLocalHost($guard, 'app.localhost');
+        $this->assertBlockedLocalHost($guard, '0.0.0.0');
+
+        $isLocal = new ReflectionMethod(EndpointGuard::class, 'isLocalHostname');
+        self::assertTrue($isLocal->invoke($guard, 'localhost'));
+        self::assertTrue($isLocal->invoke($guard, 'svc.localhost'));
+        self::assertTrue($isLocal->invoke($guard, '0.0.0.0'));
+        self::assertFalse($isLocal->invoke($guard, 'example.com'));
+
+        self::assertSame('2001:db8::2', $guard->extractHost('tcp://[2001:db8::2]:22'));
+        self::assertSame('example.com', $guard->extractHost('example.com:22'));
+        self::assertSame('[broken', $guard->extractHost('https://[broken/x'));
+
+        $replace = new ReflectionMethod(EndpointGuard::class, 'replaceHost');
+        self::assertSame('10.0.0.1:443', $replace->invoke($guard, 'example.com:443', '10.0.0.1'));
+        self::assertSame('10.0.0.1:8', $replace->invoke($guard, 'h:8', '10.0.0.1'));
+        self::assertSame('10.0.0.1', $replace->invoke($guard, 'example.com:abc', '10.0.0.1'));
+        self::assertSame('[2001:db8::1]:22', $replace->invoke($guard, '[fe80::1]:22', '2001:db8::1'));
+        self::assertSame('10.0.0.2', $replace->invoke($guard, '[broken', '10.0.0.2'));
+    }
+
+    /**
+     * Локальный host блокируется с точным текстом (убивает Throw_ без throw).
+     */
+    private function assertBlockedLocalHost(EndpointGuard $guard, string $host): void
+    {
+        try {
+            $guard->resolvePublicIps($host);
+            self::fail('expected SSRF guard for ' . $host);
+        } catch (SecurityException $exception) {
+            self::assertSame(
+                sprintf('Запрещённый адрес (SSRF-guard): %s', $host),
+                $exception->getMessage(),
+            );
+        }
     }
 }

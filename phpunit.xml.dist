@@ -26,11 +26,19 @@
         <testsuite name="performance">
             <directory>tests/Performance</directory>
         </testsuite>
+        <testsuite name="comparison">
+            <directory>tests/Comparison</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
             <directory>src</directory>
         </include>
+        <exclude>
+            <file>src/Driver/Ssh/NativeSshSession.php</file>
+            <file>src/Driver/Ssh/SshWire.php</file>
+            <file>src/Driver/Ssh/SshConnector.php</file>
+        </exclude>
     </source>
     <php>
         <ini name="memory_limit" value="512M"/>

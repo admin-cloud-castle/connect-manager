@@ -29,6 +29,12 @@ $table = <<<MD
 $targets = [
     'wiki/docs/ru/Testing.md',
     'wiki/docs/en/Testing.md',
+    'wiki/docs/ru/Comparison.md',
+    'wiki/docs/en/Comparison.md',
+    'wiki/docs/de/Comparison.md',
+    'wiki/docs/fr/Comparison.md',
+    'wiki/docs/es/Comparison.md',
+    'wiki/docs/it/Comparison.md',
 ];
 
 foreach ($targets as $target) {

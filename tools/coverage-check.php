@@ -16,7 +16,7 @@ if (!is_file($cloverPath)) {
 }
 
 $xml = new SimpleXMLElement((string) file_get_contents($cloverPath));
-$metricsNodes = $xml->xpath('//project/metrics|//metrics');
+$metricsNodes = $xml->xpath('//project/metrics');
 $metrics = (is_array($metricsNodes) && isset($metricsNodes[0])) ? $metricsNodes[0] : null;
 
 if ($metrics === null) {

@@ -35,7 +35,7 @@ final class MixedValues
         $stream = fopen('php://memory', 'r+b');
 
         if ($stream === false) {
-            throw new \RuntimeException('Не удалось открыть php://memory');
+            throw new \CloudCastle\ConnectManager\Exception\ConnectionException('Не удалось открыть php://memory');
         }
 
         return $stream;

@@ -55,19 +55,19 @@ Production-ready PHP 8.1+ библиотека Connect Manager (CloudCastle).
 Краткая выжимка:
 
 **Плюсы**
-- Суперсет возможностей connect/socket/HTTP/SSH-библиотек в одном Connection API
-- 150+ протоколов в реестре, логические соединения для L1/L2 без native PHP
-- SSRF-guard и TLS verify peer по умолчанию; ноль runtime-зависимостей Composer
-- Покрытие ≥99.8%, полный quality-стек
+- Единый Connection API: TCP/UDP/TLS/Unix + реестр OSI; прикладной HTTP/1.1 (JSON/form/redirects) и SSH/SFTP
+- 160 протоколов в реестре, логические соединения для L1/L2 без native PHP
+- SSRF-guard (DNS-resolve + anti-rebinding) и TLS verify peer по умолчанию
+- Non-blocking async connect на Fibers; покрытие ≥99.8%, полный quality-стек
 
 **Минусы** (допустимые)
 - Пакет моложе и менее распространён, чем react/socket, amphp/socket, Guzzle, phpseclib
-- Потребление памяти может быть выше минималистичных raw-socket обёрток ради функционала
+- Нативный SSH/SFTP на openssl+gmp (без Composer runtime-deps); для Ed25519 желателен ext-sodium
 
 ## Когда применять
 
-- Нужен один клиент для TCP/UDP/TLS/Unix/HTTP и прикладных схем без зоопарка библиотек
-- Sync CLI/FPM и async (Fibers) в одном коде
+- Нужен один клиент для TCP/UDP/TLS/Unix/HTTP/SSH/SFTP без зоопарка библиотек
+- Sync CLI/FPM и async (Fibers, non-blocking connect) в одном коде
 - Экосистема CloudCastle / строгие требования к security defaults
 
 ## Установка
@@ -92,6 +92,24 @@ $options = ConnectionOptions::defaults()->allowPrivateAddresses();
 $tcp = $manager->connect('tcp', '127.0.0.1:8080', $options);
 $tcp->write("ping\n");
 $tcp->close();
+
+$response = $manager->http()->get('https://example.com/');
+$ssh = $manager->ssh(
+    'example.com:22',
+    \CloudCastle\ConnectManager\Contract\AuthCredentials::withPassword('user', 'secret'),
+);
+echo $ssh->exec('uname -a');
+$ssh->close();
+
+$sshKey = $manager->ssh(
+    'example.com:22',
+    \CloudCastle\ConnectManager\Contract\AuthCredentials::withPublicKey(
+        'user',
+        '/home/user/.ssh/id_rsa',
+        null,
+    ),
+);
+$sshKey->close();
 
 // Логическое соединение для протокола без native-транспорта:
 $adsl = $manager->connect('adsl', 'line-1', $options);

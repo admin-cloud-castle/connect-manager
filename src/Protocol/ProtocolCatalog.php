@@ -8,7 +8,10 @@ namespace CloudCastle\ConnectManager\Protocol;
  * Каталог протоколов (список OSI + socket и распространённые прикладные).
  *
  * Источник базового списка: https://ru.wikipedia.org/wiki/Список_сетевых_протоколов
+ *
  * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
+ * @SuppressWarnings("PHPMD.ExcessiveClassLength")
+ * @SuppressWarnings("PHPMD.StaticAccess")
  */
 final class ProtocolCatalog
 {
@@ -18,6 +21,27 @@ final class ProtocolCatalog
      * @return \Generator<int, ProtocolDefinition>
      */
     public static function definitions(): \Generator
+    {
+        yield from self::layerOneAndTwo();
+        yield from self::layerThreeAndFour();
+        yield from self::layerFiveToSeven();
+        yield from self::extraTransports();
+    }
+
+    /**
+     * Число протоколов в каталоге.
+     */
+    public static function size(): int
+    {
+        return 160;
+    }
+
+    /**
+     * Слои OSI 1–2.
+     *
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function layerOneAndTwo(): \Generator
     {
         yield new ProtocolDefinition('adsl', 'ADSL Asymmetric Digital Subscriber Line', 1, 'none', false, 'adsl');
         yield new ProtocolDefinition('isdn', 'ISDN Integrated Services Digital Network', 1, 'none', false, 'isdn');
@@ -63,6 +87,15 @@ final class ProtocolCatalog
         yield new ProtocolDefinition('stp', 'Spanning Tree Protocol', 2, 'raw', false, 'stp');
         yield new ProtocolDefinition('token-ring', 'Token ring', 2, 'raw', false, 'tokenring');
         yield new ProtocolDefinition('vtp', 'VLAN Trunking Protocol', 2, 'raw', false, 'vtp');
+    }
+
+    /**
+     * Слои OSI 3–4 и смежные.
+     *
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function layerThreeAndFour(): \Generator
+    {
         yield new ProtocolDefinition('mpls', 'MPLS', 3, 'raw', false, 'mpls');
         yield new ProtocolDefinition('x25', 'X.25', 3, 'raw', false, 'x25');
         yield new ProtocolDefinition('arp', 'Address Resolution Protocol', 3, 'raw', false, 'arp');
@@ -103,6 +136,25 @@ final class ProtocolCatalog
         yield new ProtocolDefinition('nfs', 'Network File System', 5, 'tcp', true, 'nfs');
         yield new ProtocolDefinition('smb', 'Server Message Block', 5, 'tcp', true, 'smb');
         yield new ProtocolDefinition('socks', 'SOCKS', 5, 'tcp', true, 'socks');
+    }
+
+    /**
+     * Прикладные протоколы и индустриальные.
+     *
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function layerFiveToSeven(): \Generator
+    {
+        yield from self::layerFiveIndustrial();
+        yield from self::layerSevenApplicationFirst();
+        yield from self::layerSevenApplicationSecond();
+    }
+
+    /**
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function layerFiveIndustrial(): \Generator
+    {
         yield new ProtocolDefinition('can', 'Controller Area Network', 0, 'raw', false, 'can');
         yield new ProtocolDefinition('cip', 'Common Industrial Protocol', 0, 'tcp', true, 'cip');
         yield new ProtocolDefinition('dcc', 'Digital Command Control', 0, 'raw', false, 'dcc');
@@ -123,12 +175,19 @@ final class ProtocolCatalog
         yield new ProtocolDefinition('dns', 'DNS', 7, 'udp', true, 'dns');
         yield new ProtocolDefinition('dhcp', 'DHCP', 7, 'udp', true, 'dhcp');
         yield new ProtocolDefinition('ed2k', 'eDonkey2000', 7, 'tcp', true, 'ed2k');
+    }
+
+    /**
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function layerSevenApplicationFirst(): \Generator
+    {
         yield new ProtocolDefinition('ftp', 'FTP', 7, 'tcp', true, 'ftp');
         yield new ProtocolDefinition('finger', 'Finger', 7, 'tcp', true, 'finger');
         yield new ProtocolDefinition('gnutella', 'Gnutella', 7, 'tcp', true, 'gnutella');
         yield new ProtocolDefinition('gopher', 'Gopher', 7, 'tcp', true, 'gopher');
-        yield new ProtocolDefinition('http', 'HTTP', 7, 'tcp', true, 'http');
-        yield new ProtocolDefinition('https', 'HTTPS', 7, 'tcp', true, 'https');
+        yield new ProtocolDefinition('http', 'HTTP (прикладной клиент)', 7, 'tcp', true, 'http');
+        yield new ProtocolDefinition('https', 'HTTPS (прикладной клиент)', 7, 'tcp', true, 'https');
         yield new ProtocolDefinition('imap', 'IMAP', 7, 'tcp', true, 'imap');
         yield new ProtocolDefinition('imaps', 'IMAPS', 7, 'tcp', true, 'imaps');
         yield new ProtocolDefinition('irc', 'IRC', 7, 'tcp', true, 'irc');
@@ -143,6 +202,13 @@ final class ProtocolCatalog
         yield new ProtocolDefinition('nntp', 'NNTP', 7, 'tcp', true, 'nntp');
         yield new ProtocolDefinition('ntp', 'NTP', 7, 'udp', true, 'ntp');
         yield new ProtocolDefinition('ntcip', 'NTCIP', 7, 'tcp', true, 'ntcip');
+    }
+
+    /**
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function layerSevenApplicationSecond(): \Generator
+    {
         yield new ProtocolDefinition('pop3', 'POP3', 7, 'tcp', true, 'pop3');
         yield new ProtocolDefinition('pop3s', 'POP3S', 7, 'tcp', true, 'pop3s');
         yield new ProtocolDefinition('radius', 'RADIUS', 7, 'udp', true, 'radius');
@@ -150,7 +216,8 @@ final class ProtocolCatalog
         yield new ProtocolDefinition('rsync', 'rsync', 7, 'tcp', true, 'rsync');
         yield new ProtocolDefinition('rtp', 'RTP', 7, 'udp', true, 'rtp');
         yield new ProtocolDefinition('rtsp', 'RTSP', 7, 'tcp', true, 'rtsp');
-        yield new ProtocolDefinition('ssh', 'SSH', 7, 'tcp', true, 'ssh');
+        yield new ProtocolDefinition('ssh', 'SSH (прикладной клиент)', 7, 'tcp', true, 'ssh');
+        yield new ProtocolDefinition('sftp', 'SFTP (прикладной клиент)', 7, 'tcp', true, 'sftp');
         yield new ProtocolDefinition('sisnapi', 'SISNAPI', 7, 'tcp', true, 'sisnapi');
         yield new ProtocolDefinition('sip', 'SIP', 7, 'udp', true, 'sip');
         yield new ProtocolDefinition('smtp', 'SMTP', 7, 'tcp', true, 'smtp');
@@ -164,6 +231,15 @@ final class ProtocolCatalog
         yield new ProtocolDefinition('tftp', 'TFTP', 7, 'udp', true, 'tftp');
         yield new ProtocolDefinition('webdav', 'WebDAV', 7, 'tcp', true, 'webdav');
         yield new ProtocolDefinition('dsm-cc', 'DSM CC', 7, 'tcp', true, 'dsmcc');
+    }
+
+    /**
+     * Socket/TLS/WS и популярные прикладные транспорты.
+     *
+     * @return \Generator<int, ProtocolDefinition>
+     */
+    private static function extraTransports(): \Generator
+    {
         yield new ProtocolDefinition('socket', 'Generic socket', 0, 'socket', true, 'socket');
         yield new ProtocolDefinition('unix', 'Unix domain socket', 0, 'unix', true, 'unix');
         yield new ProtocolDefinition('udg', 'Unix datagram socket', 0, 'unix', true, 'udg');
@@ -178,13 +254,5 @@ final class ProtocolCatalog
         yield new ProtocolDefinition('mysql', 'MySQL protocol', 7, 'tcp', true, 'mysql');
         yield new ProtocolDefinition('pgsql', 'PostgreSQL protocol', 7, 'tcp', true, 'pgsql');
         yield new ProtocolDefinition('grpc', 'gRPC', 7, 'tcp', true, 'grpc');
-    }
-
-    /**
-     * Число протоколов в каталоге.
-     */
-    public static function size(): int
-    {
-        return 159;
     }
 }

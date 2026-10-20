@@ -15,8 +15,13 @@ final class NativeStreamSelector implements StreamSelectorInterface
      * {@inheritdoc}
      */
     #[\Override]
-    public function select(?array &$read, ?array &$write, ?array &$except, int $seconds): int|false
-    {
-        return @stream_select($read, $write, $except, $seconds);
+    public function select(
+        ?array &$read,
+        ?array &$write,
+        ?array &$except,
+        int $seconds,
+        int $microseconds = 0,
+    ): int|false {
+        return @stream_select($read, $write, $except, $seconds, $microseconds);
     }
 }

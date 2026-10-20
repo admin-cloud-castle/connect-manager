@@ -4,37 +4,53 @@ declare(strict_types=1);
 
 namespace CloudCastle\ConnectManager\Driver;
 
+use CloudCastle\ConnectManager\Contract\AsyncRuntimeInterface;
 use CloudCastle\ConnectManager\Contract\ConnectionOptions;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
 use CloudCastle\ConnectManager\Exception\TimeoutException;
 
 /**
- * Открывает PHP stream по URI с учётом TLS и таймаутов.
+ * Открывает PHP stream по URI с учётом TLS, таймаутов и async connect.
  *
  * @SuppressWarnings("PHPMD.ErrorControlOperator")
+ * @SuppressWarnings("PHPMD.CyclomaticComplexity")
  */
 final class StreamOpener
 {
     /**
-     * Открывает клиентский stream.
+     * Открывает клиентский stream (sync или non-blocking async).
      *
      * @return resource
      *
      * @throws ConnectionException
      * @throws TimeoutException
      */
-    public function open(string $uri, ConnectionOptions $options): mixed
-    {
+    public function open(
+        string $uri,
+        ConnectionOptions $options,
+        ?AsyncRuntimeInterface $async = null,
+    ): mixed {
         $context = stream_context_create($this->buildContextOptions($options));
+        $useAsync = $options->mode() === 'async' && $async instanceof AsyncRuntimeInterface;
+        $flags = STREAM_CLIENT_CONNECT;
+
+        if ($useAsync) {
+            $flags |= STREAM_CLIENT_ASYNC_CONNECT;
+        }
+
         $stream = @stream_socket_client(
             $uri,
-            timeout: $options->connectTimeout(),
-            flags: STREAM_CLIENT_CONNECT,
+            timeout: $useAsync ? 0.0 : $options->connectTimeout(),
+            flags: $flags,
             context: $context,
         );
 
         if ($stream === false) {
             throw $this->createOpenException($uri, null, $this->lastErrorMessage());
+        }
+
+        if ($useAsync) {
+            $this->completeAsyncConnect($stream, $uri, $options, $async);
         }
 
         $appliedTimeout = $this->applyIoTimeout($stream, $options->ioTimeout());
@@ -62,7 +78,9 @@ final class StreamOpener
      */
     public function isTimeoutError(int $errno, string $errstr): bool
     {
-        return $errno === SOCKET_ETIMEDOUT || str_contains(strtolower($errstr), 'timed out');
+        $socketTimedOut = defined('SOCKET_ETIMEDOUT') && $errno === SOCKET_ETIMEDOUT;
+
+        return $socketTimedOut || str_contains(strtolower($errstr), 'timed out');
     }
 
     /**
@@ -89,7 +107,7 @@ final class StreamOpener
     }
 
     /**
-     * Опции stream context.
+     * Опции stream context (TLS verify peer по умолчанию из ConnectionOptions).
      *
      * @return array<string, mixed>
      */
@@ -111,9 +129,9 @@ final class StreamOpener
             ],
         ];
 
-        /** @var array<string, mixed> $merged */
         $merged = array_replace_recursive($defaults, $options->streamContext());
 
+        /** @var array<string, mixed> $merged */
         return $merged;
     }
 
@@ -146,5 +164,40 @@ final class StreamOpener
         $seconds = (int) $ioTimeout;
 
         return $seconds > 0 ? $seconds : 1;
+    }
+
+    /**
+     * Дожидается готовности writable после STREAM_CLIENT_ASYNC_CONNECT.
+     *
+     * @param resource $stream
+     *
+     * @throws ConnectionException
+     * @throws TimeoutException
+     */
+    /**
+     * Дожидается готовности writable после STREAM_CLIENT_ASYNC_CONNECT.
+     *
+     * @throws ConnectionException
+     * @throws TimeoutException
+     */
+    private function completeAsyncConnect(
+        mixed $stream,
+        string $uri,
+        ConnectionOptions $options,
+        AsyncRuntimeInterface $async,
+    ): void {
+        if (!is_resource($stream)) {
+            throw new ConnectionException('Ожидался stream resource');
+        }
+
+        stream_set_blocking($stream, false);
+        $async->awaitWritable($stream, $options->connectTimeout());
+        $peer = @stream_socket_get_name($stream, true);
+
+        if (!is_string($peer) || $peer === '') { // @codeCoverageIgnoreStart
+            fclose($stream);
+
+            throw $this->createOpenException($uri, null, 'async connect не установил пир');
+        } // @codeCoverageIgnoreEnd
     }
 }

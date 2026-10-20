@@ -1,0 +1,244 @@
+[
+    {
+        "feature": "PHP 8.1+",
+        "packages": {
+            "ours": true,
+            "react/socket": true,
+            "amphp/socket": true,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": true,
+            "clue/socket-raw": true
+        }
+    },
+    {
+        "feature": "Единый Connection API для любого протокола",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Реестр протоколов OSI (100+)",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "TCP / UDP / Unix / TLS нативные stream",
+        "packages": {
+            "ours": true,
+            "react/socket": true,
+            "amphp/socket": true,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": true
+        }
+    },
+    {
+        "feature": "HTTP(S) прикладной клиент (JSON/form/redirects)",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "SSH / SFTP прикладной стек",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": true,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "SSRF-guard с DNS-resolve и anti-rebinding",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Non-blocking async connect (STREAM_CLIENT_ASYNC_CONNECT)",
+        "packages": {
+            "ours": true,
+            "react/socket": true,
+            "amphp/socket": true,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Логические соединения для L1/L2 без native PHP",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Sync режим (обычное PHP-приложение)",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": true,
+            "clue/socket-raw": true
+        }
+    },
+    {
+        "feature": "Async режим (Fibers / event-loop)",
+        "packages": {
+            "ours": true,
+            "react/socket": true,
+            "amphp/socket": true,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Async без внешних event-loop зависимостей (Fibers)",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Пул соединений",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "SSRF-guard (блок частных адресов)",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "TLS verify peer по умолчанию",
+        "packages": {
+            "ours": true,
+            "react/socket": true,
+            "amphp/socket": true,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Генераторы чтения (экономия памяти)",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Пользовательская регистрация протоколов",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Ноль runtime-зависимостей Composer",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": true
+        }
+    },
+    {
+        "feature": "Raw sockets (ext-sockets)",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": true
+        }
+    },
+    {
+        "feature": "Только HTTP-ориентированный API",
+        "packages": {
+            "ours": false,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Только ReactPHP event-loop",
+        "packages": {
+            "ours": false,
+            "react/socket": true,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "feature": "Только Amp event-loop",
+        "packages": {
+            "ours": false,
+            "react/socket": false,
+            "amphp/socket": true,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    }
+]

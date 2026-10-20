@@ -1,6 +1,6 @@
 {
     "name": "cloud-castle/connect-manager",
-    "description": "Унифицированный менеджер сетевых соединений PHP 8.1+: реестр протоколов OSI, TCP/UDP/TLS/Unix/socket, sync и async (Fibers), пул, SSRF-guard.",
+    "description": "Унифицированный менеджер сетевых соединений PHP 8.1+: OSI-реестр, TCP/UDP/TLS/Unix, HTTP/SSH/SFTP, sync/async (Fibers), пул, SSRF-guard.",
     "license": "MIT",
     "type": "library",
     "keywords": [
@@ -37,17 +37,23 @@
         "security": "https://github.com/admin-cloud-castle/connect-manager/security/advisories/new"
     },
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.1",
+        "ext-gmp": "*",
+        "ext-openssl": "*"
     },
     "require-dev": {
+        "amphp/socket": "^2.3",
+        "clue/socket-raw": "^1.6",
         "deptrac/deptrac": "^2.0",
         "ergebnis/composer-normalize": "^2.45",
         "friendsofphp/php-cs-fixer": "^3.68",
+        "guzzlehttp/guzzle": "^7.9",
         "icanhazstring/composer-unused": "^0.9",
         "infection/infection": "^0.28.1",
         "php-parallel-lint/php-parallel-lint": "^1.4",
         "phpdocumentor/shim": "^3.5",
         "phpmd/phpmd": "^2.15",
+        "phpseclib/phpseclib": "^3.0",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-deprecation-rules": "^2.0",
@@ -55,6 +61,7 @@
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpunit/phpunit": "^10.5",
         "psalm/plugin-phpunit": "^0.19",
+        "react/socket": "^1.16",
         "rector/rector": "^2.0",
         "roave/security-advisories": "dev-latest",
         "squizlabs/php_codesniffer": "^3.11",
@@ -69,7 +76,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "CloudCastle\\ConnectManager\\Tests\\": "tests/"
+            "CloudCastle\\ConnectManager\\Tests\\": "tests/",
+            "CloudCastle\\ConnectManager\\Tools\\": "tools/"
         }
     },
     "config": {
@@ -116,12 +124,19 @@
             "@test:mutation"
         ],
         "coverage-check": "php tools/coverage-check.php var/coverage/clover.xml",
+        "docs:benchmark": "php tools/benchmark-competitors.php",
         "docs:build": "phpdoc run --config=phpdoc.dist.xml --force --no-interaction",
         "docs:check": "phpdocumentor --version",
+        "docs:comparison": [
+            "@docs:benchmark",
+            "php tools/aggregate-comparison-json.php",
+            "php tools/generate-comparison-docs.php"
+        ],
         "docs:features": "php tools/generate-features-docs.php",
         "docs:sync": [
             "@docs:thresholds",
-            "@docs:features"
+            "@docs:features",
+            "@docs:comparison"
         ],
         "docs:thresholds": "php tools/generate-threshold-docs.php",
         "fix": [
@@ -129,6 +144,7 @@
             "rector process"
         ],
         "test": "phpunit",
+        "test:comparison": "phpunit --testsuite comparison",
         "test:coverage": [
             "@php -d memory_limit=512M vendor/bin/phpunit --coverage-clover=var/coverage/clover.xml --coverage-text",
             "@php tools/coverage-check.php var/coverage/clover.xml"
@@ -137,7 +153,7 @@
         "test:load": "phpunit --testsuite load",
         "test:mutation": [
             "Composer\\Config::disableProcessTimeout",
-            "php -d memory_limit=3G vendor/bin/infection --configuration=infection.json.dist --threads=max --show-mutations"
+            "php -d memory_limit=3G vendor/bin/infection --configuration=infection.json.dist --threads=max --show-mutations --only-covered"
         ],
         "test:performance": "phpunit --testsuite performance",
         "test:security": "phpunit --testsuite security",
@@ -146,7 +162,9 @@
     "scripts-descriptions": {
         "ci": "Полный локальный пайплайн качества (как CI Quality)",
         "docs:build": "Генерация API-документации phpDocumentor для GitHub Pages",
-        "docs:sync": "Пересборка авто-блоков документации",
+        "docs:comparison": "Бенчмарки vs аналоги + таблицы BENCH/SECURITY",
+        "docs:sync": "Пересборка авто-блоков FEATURES/THRESHOLDS/BENCH/SECURITY",
+        "test:comparison": "Сравнительные тесты со всеми аналогами",
         "test:coverage": "Тесты с покрытием и порогом per-file",
         "test:mutation": "Infection MSI"
     }

@@ -5,45 +5,93 @@ declare(strict_types=1);
 namespace CloudCastle\ConnectManager\Security;
 
 use CloudCastle\ConnectManager\Contract\ConnectionOptions;
+use CloudCastle\ConnectManager\Contract\DnsResolverInterface;
 use CloudCastle\ConnectManager\Exception\SecurityException;
 
 /**
- * Валидация endpoint и защита от SSRF.
+ * Валидация endpoint, DNS-resolve и защита от SSRF / DNS-rebinding.
+ *
  * @SuppressWarnings("PHPMD.CyclomaticComplexity")
  * @SuppressWarnings("PHPMD.NPathComplexity")
  * @SuppressWarnings("PHPMD.ShortVariable")
+ * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
+ * @SuppressWarnings("PHPMD.ErrorControlOperator")
  */
 final class EndpointGuard
 {
     /**
-     * Проверяет endpoint согласно опциям безопасности.
+     * @param DnsResolverInterface $dns Резолвер DNS (по умолчанию системный)
+     */
+    public function __construct(
+        private readonly DnsResolverInterface $dns = new PhpDnsResolver(),
+    ) {
+    }
+
+    /**
+     * Проверяет endpoint и возвращает IP-pinned вариант для connect.
      *
      * @throws SecurityException
      */
-    public function assertAllowed(string $endpoint, ConnectionOptions $options): void
+    public function prepare(string $endpoint, ConnectionOptions $options): PinnedEndpoint
     {
         $endpoint = trim($endpoint);
-
-        if ($endpoint === '') {
-            throw new SecurityException('Пустой endpoint запрещён');
-        }
-
-        if (preg_match('/[\x00-\x1F\x7F]/', $endpoint) === 1) {
-            throw new SecurityException('Endpoint содержит управляющие символы');
-        }
+        $this->assertEndpointShape($endpoint);
 
         if (!$options->blockPrivateAddresses()) {
-            return;
+            return new PinnedEndpoint($endpoint, null, []);
         }
 
         $host = $this->extractHost($endpoint);
 
         if ($host === null) {
+            return new PinnedEndpoint($endpoint, null, []);
+        }
+
+        $ips = $this->resolvePublicIps($host);
+        $pinnedHost = $ips[0];
+        $connectEndpoint = $this->replaceHost($endpoint, $pinnedHost);
+        $tlsPeerName = filter_var($host, FILTER_VALIDATE_IP) === false ? $host : null;
+
+        return new PinnedEndpoint($connectEndpoint, $tlsPeerName, $ips);
+    }
+
+    /**
+     * Проверяет endpoint согласно опциям безопасности (без пиннинга).
+     *
+     * @throws SecurityException
+     */
+    public function assertAllowed(string $endpoint, ConnectionOptions $options): void
+    {
+        $this->prepare($endpoint, $options);
+    }
+
+    /**
+     * Повторная проверка адреса пира после connect (анти-rebinding).
+     *
+     * @param mixed $stream Открытый stream resource
+     *
+     * @throws SecurityException
+     */
+    public function assertConnectedPeer(mixed $stream, ConnectionOptions $options): void
+    {
+        if (!$options->blockPrivateAddresses() || !is_resource($stream)) {
             return;
         }
 
-        if ($this->isBlockedHost($host)) {
-            throw new SecurityException(sprintf('Запрещённый адрес (SSRF-guard): %s', $host));
+        $peer = @stream_socket_get_name($stream, true);
+
+        if (!is_string($peer) || $peer === '') { // @codeCoverageIgnoreStart
+            return;
+        } // @codeCoverageIgnoreEnd
+
+        $host = $this->extractHost($peer);
+
+        if ($host === null) { // @codeCoverageIgnoreStart
+            return;
+        } // @codeCoverageIgnoreEnd
+
+        if ($this->isBlockedIp($host)) {
+            throw new SecurityException(sprintf('Пир после connect запрещён (SSRF-guard): %s', $host));
         }
     }
 
@@ -52,37 +100,160 @@ final class EndpointGuard
      */
     public function extractHost(string $endpoint): ?string
     {
-        if (
-            str_starts_with($endpoint, '/')
-            || str_starts_with($endpoint, 'unix://')
-            || str_starts_with($endpoint, 'udg://')
-        ) {
+        if ($this->isUnixLike($endpoint)) {
             return null;
         }
 
+        if (str_contains($endpoint, '://')) {
+            return $this->hostFromUrl($endpoint);
+        }
+
+        if (str_starts_with($endpoint, '[')) {
+            return $this->hostFromBracket($endpoint);
+        }
+
+        return $this->hostFromHostPort($endpoint);
+    }
+
+    /**
+     * Проверяет, является ли host частным/зарезервированным (с DNS для имён).
+     */
+    public function isBlockedHost(string $host): bool
+    {
+        if ($this->isLocalHostname($host)) {
+            return true;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            return $this->isBlockedIp($host);
+        }
+
+        try {
+            $this->resolvePublicIps($host);
+        } catch (SecurityException) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Резолвит hostname и проверяет, что все адреса публичные.
+     *
+     * @return list<string>
+     *
+     * @throws SecurityException
+     */
+    public function resolvePublicIps(string $host): array
+    {
+        if ($this->isLocalHostname($host)) {
+            throw new SecurityException(sprintf('Запрещённый адрес (SSRF-guard): %s', $host));
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            if ($this->isBlockedIp($host)) {
+                throw new SecurityException(sprintf('Запрещённый адрес (SSRF-guard): %s', $host));
+            }
+
+            return [$host];
+        }
+
+        $ips = $this->dns->resolve($host);
+
+        if ($ips === []) {
+            throw new SecurityException(sprintf('Не удалось резолвить host (SSRF-guard): %s', $host));
+        }
+
+        foreach ($ips as $ip) {
+            if ($this->isBlockedIp($ip)) {
+                throw new SecurityException(sprintf(
+                    'DNS вернул запрещённый адрес (SSRF-guard): %s → %s',
+                    $host,
+                    $ip,
+                ));
+            }
+        }
+
+        return $ips;
+    }
+
+    /**
+     * Базовая форма endpoint.
+     *
+     * @throws SecurityException
+     */
+    private function assertEndpointShape(string $endpoint): void
+    {
+        if ($endpoint === '') {
+            throw new SecurityException('Пустой endpoint запрещён');
+        }
+
+        if (preg_match('/[\x00-\x1F\x7F]/', $endpoint) === 1) {
+            throw new SecurityException('Endpoint содержит управляющие символы');
+        }
+    }
+
+    /**
+     * Unix / UDG пути не резолвятся как host.
+     */
+    private function isUnixLike(string $endpoint): bool
+    {
+        return str_starts_with($endpoint, '/')
+            || str_starts_with($endpoint, 'unix://')
+            || str_starts_with($endpoint, 'udg://');
+    }
+
+    /**
+     * localhost и синонимы.
+     */
+    private function isLocalHostname(string $host): bool
+    {
+        return $host === 'localhost'
+            || str_ends_with($host, '.localhost')
+            || $host === '0.0.0.0';
+    }
+
+    /**
+     * Host из URL.
+     */
+    private function hostFromUrl(string $endpoint): ?string
+    {
+        $parts = parse_url($endpoint);
+        $host = is_array($parts) ? ($parts['host'] ?? null) : null;
+
+        if (!is_string($host) || $host === '') {
+            return null;
+        }
+
+        $host = strtolower($host);
+
+        if (str_starts_with($host, '[') && str_ends_with($host, ']')) {
+            return substr($host, 1, -1);
+        }
+
+        return $host;
+    }
+
+    /**
+     * Host из [IPv6]:port.
+     */
+    private function hostFromBracket(string $endpoint): ?string
+    {
+        $end = strpos($endpoint, ']');
+
+        if ($end === false) {
+            return null;
+        }
+
+        return strtolower(substr($endpoint, 1, $end - 1));
+    }
+
+    /**
+     * Host из host:port.
+     */
+    private function hostFromHostPort(string $endpoint): string
+    {
         $candidate = $endpoint;
-
-        if (str_contains($candidate, '://')) {
-            $parts = parse_url($candidate);
-            $host = is_array($parts) ? ($parts['host'] ?? null) : null;
-
-            if (!is_string($host) || $host === '') {
-                return null;
-            }
-
-            return strtolower($host);
-        }
-
-        if (str_starts_with($candidate, '[')) {
-            $end = strpos($candidate, ']');
-
-            if ($end === false) {
-                return null;
-            }
-
-            return strtolower(substr($candidate, 1, $end - 1));
-        }
-
         $colon = strrpos($candidate, ':');
 
         if (is_int($colon) && ctype_digit(substr($candidate, $colon + 1))) {
@@ -93,19 +264,60 @@ final class EndpointGuard
     }
 
     /**
-     * Проверяет, является ли host частным/зарезервированным.
+     * Подставляет IP вместо hostname в endpoint.
      */
-    public function isBlockedHost(string $host): bool
+    private function replaceHost(string $endpoint, string $ip): string
     {
-        if ($host === 'localhost' || str_ends_with($host, '.localhost') || $host === '0.0.0.0') {
-            return true;
+        $formattedIp = str_contains($ip, ':') ? '[' . $ip . ']' : $ip;
+
+        if (str_contains($endpoint, '://')) {
+            return $this->replaceHostInUrl($endpoint, $formattedIp);
         }
 
-        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
-            return !$this->isPublicIp($host);
+        if (str_starts_with($endpoint, '[')) {
+            $end = strpos($endpoint, ']');
+
+            if ($end === false) {
+                return $formattedIp;
+            }
+
+            return $formattedIp . substr($endpoint, $end + 1);
         }
 
-        return false;
+        $colon = strrpos($endpoint, ':');
+
+        if (is_int($colon) && ctype_digit(substr($endpoint, $colon + 1))) {
+            return $formattedIp . substr($endpoint, $colon);
+        }
+
+        return $formattedIp;
+    }
+
+    /**
+     * Замена host в URI.
+     */
+    private function replaceHostInUrl(string $endpoint, string $formattedIp): string
+    {
+        $parts = parse_url($endpoint);
+
+        if (!is_array($parts)) {
+            return $endpoint;
+        }
+
+        $scheme = $parts['scheme'] ?? 'tcp';
+        $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+        $path = $parts['path'] ?? '';
+        $query = isset($parts['query']) ? '?' . $parts['query'] : '';
+
+        return $scheme . '://' . $formattedIp . $port . $path . $query;
+    }
+
+    /**
+     * IP частный/reserved/link-local.
+     */
+    private function isBlockedIp(string $ip): bool
+    {
+        return !$this->isPublicIp($ip);
     }
 
     /**

@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace CloudCastle\ConnectManager\Tests\Unit;
 
+use CloudCastle\ConnectManager\Contract\AuthCredentials;
 use CloudCastle\ConnectManager\Contract\ConnectionOptions;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Тесты ConnectionOptions.
  */
 #[CoversClass(ConnectionOptions::class)]
+#[UsesClass(AuthCredentials::class)]
 #[CoversClass(\CloudCastle\ConnectManager\ConnectManager::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Async\FiberAsyncRuntime::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Async\NativeStreamSelector::class)]
@@ -79,5 +82,34 @@ final class ConnectionOptionsTest extends TestCase
         self::assertTrue($options->allowInsecure());
         self::assertNotSame('async', $options->mode());
         self::assertArrayHasKey('ssl', $options->streamContext());
+    }
+
+    /**
+     * auth(), withAuth и withTlsPeerName поверх существующего ssl-контекста.
+     */
+    public function testAuthAndTlsPeerName(): void
+    {
+        $auth = AuthCredentials::withPassword('user', 'secret');
+        $base = ConnectionOptions::defaults()->withAuth($auth);
+        self::assertSame($auth, $base->auth());
+
+        $merged = new ConnectionOptions(
+            5.0,
+            30.0,
+            true,
+            true,
+            false,
+            ['ssl' => ['verify_peer' => true]],
+        );
+        $withTls = $merged->withTlsPeerName('api.example');
+        $context = $withTls->streamContext();
+        self::assertArrayHasKey('ssl', $context);
+        self::assertIsArray($context['ssl']);
+        /** @var array<string, mixed> $ssl */
+        $ssl = $context['ssl'];
+        self::assertSame('api.example', $ssl['peer_name']);
+
+        $copyOnly = ConnectionOptions::defaults()->withMode('sync');
+        self::assertNull($copyOnly->auth());
     }
 }

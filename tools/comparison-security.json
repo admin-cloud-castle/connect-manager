@@ -1,0 +1,112 @@
+[
+    {
+        "standard": "SECURITY.md / политика раскрытия уязвимостей",
+        "packages": {
+            "ours": true,
+            "react/socket": true,
+            "amphp/socket": true,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": true,
+            "clue/socket-raw": true
+        }
+    },
+    {
+        "standard": "composer audit / FriendsOfPHP advisories в CI",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "standard": "SSRF-guard (блок частных/metadata IP по умолчанию)",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "standard": "DNS pin / anti-rebinding после resolve",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "standard": "TLS verify peer по умолчанию",
+        "packages": {
+            "ours": true,
+            "react/socket": true,
+            "amphp/socket": true,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "standard": "Явный opt-in для insecure / allow_private",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": true,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "standard": "Статанализ безопасности (PHPStan max / Psalm L1) в CI пакета",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "standard": "Infection / мутационное тестирование с порогом MSI",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "standard": "roave/security-advisories в require-dev",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": false
+        }
+    },
+    {
+        "standard": "Публичный API не тянет сторонний crypto/HTTP runtime",
+        "packages": {
+            "ours": true,
+            "react/socket": false,
+            "amphp/socket": false,
+            "guzzlehttp/guzzle": false,
+            "phpseclib/phpseclib": false,
+            "clue/socket-raw": true
+        }
+    }
+]

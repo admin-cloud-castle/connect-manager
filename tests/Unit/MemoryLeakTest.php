@@ -8,6 +8,7 @@ use CloudCastle\ConnectManager\Connection\LogicalConnection;
 use CloudCastle\ConnectManager\ConnectManager;
 use CloudCastle\ConnectManager\Contract\ConnectionOptions;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -34,6 +35,9 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(\CloudCastle\ConnectManager\Exception\ProtocolException::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Exception\SecurityException::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Exception\TimeoutException::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Driver\Http\HttpClient::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Driver\Ssh\SshConnector::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Security\PinnedEndpoint::class)]
 /**
  * @SuppressWarnings("PHPMD.StaticAccess")
  * @SuppressWarnings("PHPMD.ShortVariable")
