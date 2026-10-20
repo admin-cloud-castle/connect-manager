@@ -37,8 +37,7 @@ composer require cloud-castle/connect-manager
 | TLS verify peer по умолчанию | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | Connect Manager |
 | Генераторы чтения (экономия памяти) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
 | Пользовательская регистрация протоколов | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
-| Минимум runtime-зависимостей (только phpseclib для SSH/SFTP) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
-| Ноль runtime-зависимостей Composer | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | clue/socket-raw |
+| Ноль runtime-зависимостей Composer | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | Connect Manager |
 | Raw sockets (ext-sockets) | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | Connect Manager |
 | Только HTTP-ориентированный API | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | guzzlehttp/guzzle |
 | Только ReactPHP event-loop | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | react/socket |

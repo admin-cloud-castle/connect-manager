@@ -6,6 +6,7 @@ namespace CloudCastle\ConnectManager\Driver\Ssh;
 
 use CloudCastle\ConnectManager\Contract\ConnectionInterface;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
+use Generator;
 
 /**
  * Прикладное SSH/SFTP соединение (нативная сессия) в контракте ConnectionInterface.
@@ -14,10 +15,20 @@ use CloudCastle\ConnectManager\Exception\ConnectionException;
  */
 final class SshConnection implements ConnectionInterface
 {
+    /**
+     * Локальный флаг «соединение ещё не закрыто через close()».
+     *
+     * @var bool
+     */
     private bool $open = true;
 
     /**
-     * @param array<string, mixed> $metadata Метаданные
+     * Оборачивает нативную SSH-сессию в ConnectionInterface.
+     *
+     * @param SshSessionInterface  $session        Аутентифицированная сессия
+     * @param string               $protocol       Идентификатор протокола («ssh» или «sftp»)
+     * @param string|null          $remoteEndpoint Исходный endpoint пользователя (host:port)
+     * @param array<string, mixed> $metadata       Служебные метаданные (engine, pinned_ips, …)
      */
     public function __construct(
         private readonly SshSessionInterface $session,
@@ -29,6 +40,8 @@ final class SshConnection implements ConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return string Идентификатор протокола («ssh» / «sftp»)
      */
     #[\Override]
     public function protocol(): string
@@ -38,6 +51,8 @@ final class SshConnection implements ConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return int Всегда 7 (прикладной уровень OSI)
      */
     #[\Override]
     public function osiLayer(): int
@@ -47,6 +62,8 @@ final class SshConnection implements ConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return bool true, пока не вызван close() и сессия isConnected()
      */
     #[\Override]
     public function isOpen(): bool
@@ -56,6 +73,8 @@ final class SshConnection implements ConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return string|null Endpoint из конструктора или null
      */
     #[\Override]
     public function remoteEndpoint(): ?string
@@ -66,7 +85,11 @@ final class SshConnection implements ConnectionInterface
     /**
      * {@inheritdoc}
      *
-     * @throws ConnectionException
+     * @param string $payload Байты в session-канал
+     *
+     * @return int Число записанных байт (strlen payload)
+     *
+     * @throws ConnectionException Если соединение закрыто
      */
     #[\Override]
     public function write(string $payload): int
@@ -80,7 +103,11 @@ final class SshConnection implements ConnectionInterface
     /**
      * {@inheritdoc}
      *
-     * @throws ConnectionException
+     * @param int $length Максимум байт за чтение
+     *
+     * @return string Прочитанный фрагмент или ''
+     *
+     * @throws ConnectionException Если соединение закрыто
      */
     #[\Override]
     public function read(int $length): string
@@ -92,9 +119,15 @@ final class SshConnection implements ConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @param int $chunkSize Размер порции для одного yield
+     *
+     * @return Generator<int, string, mixed, void> Не более одного чанка за итерацию
+     *
+     * @throws ConnectionException Если соединение закрыто
      */
     #[\Override]
-    public function readChunks(int $chunkSize = 8192): \Generator
+    public function readChunks(int $chunkSize = 8192): Generator
     {
         $chunk = $this->read($chunkSize);
 
@@ -105,6 +138,8 @@ final class SshConnection implements ConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * Отправляет DISCONNECT и помечает соединение закрытым.
      */
     #[\Override]
     public function close(): void
@@ -117,6 +152,8 @@ final class SshConnection implements ConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return array<string, mixed> Копия метаданных конструктора
      */
     #[\Override]
     public function metadata(): array
@@ -126,6 +163,8 @@ final class SshConnection implements ConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return SshSessionInterface Внутренняя нативная сессия
      */
     #[\Override]
     public function resource(): mixed
@@ -134,9 +173,13 @@ final class SshConnection implements ConnectionInterface
     }
 
     /**
-     * Выполняет удалённую команду и возвращает stdout.
+     * Выполняет удалённую команду и возвращает stdout (и накопленный stderr канала).
      *
-     * @throws ConnectionException
+     * @param string $command Команда для channel request «exec»
+     *
+     * @return string Вывод команды
+     *
+     * @throws ConnectionException Если соединение закрыто или протокол упал
      */
     public function exec(string $command): string
     {
@@ -146,9 +189,11 @@ final class SshConnection implements ConnectionInterface
     }
 
     /**
-     * Открывает SFTP-клиент.
+     * Открывает прикладной SFTP-клиент поверх той же сессии.
      *
-     * @throws ConnectionException
+     * @return SftpClient Клиент get/put/list/mkdir/delete
+     *
+     * @throws ConnectionException Если соединение закрыто или subsystem не поднялся
      */
     public function sftp(): SftpClient
     {
@@ -158,7 +203,9 @@ final class SshConnection implements ConnectionInterface
     }
 
     /**
-     * @throws ConnectionException
+     * Гарантирует, что соединение ещё открыто.
+     *
+     * @throws ConnectionException Если isOpen() === false
      */
     private function assertOpen(): void
     {

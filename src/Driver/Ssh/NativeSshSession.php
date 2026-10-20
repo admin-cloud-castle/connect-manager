@@ -6,9 +6,10 @@ namespace CloudCastle\ConnectManager\Driver\Ssh;
 
 use CloudCastle\ConnectManager\Contract\AuthCredentials;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
+use GMP;
 
 /**
- * Нативная SSH-2 сессия на PHP openssl (без Composer runtime-зависимостей).
+ * Нативная SSH-2 сессия на PHP openssl/gmp без Composer runtime-зависимостей.
  *
  * @SuppressWarnings("PHPMD.ErrorControlOperator")
  * @SuppressWarnings("PHPMD.CyclomaticComplexity")
@@ -21,64 +22,210 @@ use CloudCastle\ConnectManager\Exception\ConnectionException;
  */
 final class NativeSshSession implements SshSessionInterface, SftpChannelInterface
 {
+    /**
+     * SSH_MSG_DISCONNECT.
+     *
+     * @var int
+     */
     private const MSG_DISCONNECT = 1;
 
+    /**
+     * SSH_MSG_SERVICE_REQUEST.
+     *
+     * @var int
+     */
     private const MSG_SERVICE_REQUEST = 5;
 
+    /**
+     * SSH_MSG_SERVICE_ACCEPT.
+     *
+     * @var int
+     */
     private const MSG_SERVICE_ACCEPT = 6;
 
+    /**
+     * SSH_MSG_KEXINIT.
+     *
+     * @var int
+     */
     private const MSG_KEXINIT = 20;
 
+    /**
+     * SSH_MSG_NEWKEYS.
+     *
+     * @var int
+     */
     private const MSG_NEWKEYS = 21;
 
+    /**
+     * SSH_MSG_KEXDH_INIT.
+     *
+     * @var int
+     */
     private const MSG_KEXDH_INIT = 30;
 
+    /**
+     * SSH_MSG_KEXDH_REPLY.
+     *
+     * @var int
+     */
     private const MSG_KEXDH_REPLY = 31;
 
+    /**
+     * SSH_MSG_USERAUTH_REQUEST.
+     *
+     * @var int
+     */
     private const MSG_USERAUTH_REQUEST = 50;
 
+    /**
+     * SSH_MSG_USERAUTH_FAILURE.
+     *
+     * @var int
+     */
     private const MSG_USERAUTH_FAILURE = 51;
 
+    /**
+     * SSH_MSG_USERAUTH_SUCCESS.
+     *
+     * @var int
+     */
     private const MSG_USERAUTH_SUCCESS = 52;
 
+    /**
+     * SSH_MSG_CHANNEL_OPEN.
+     *
+     * @var int
+     */
     private const MSG_CHANNEL_OPEN = 90;
 
+    /**
+     * SSH_MSG_CHANNEL_OPEN_CONFIRMATION.
+     *
+     * @var int
+     */
     private const MSG_CHANNEL_OPEN_CONFIRMATION = 91;
 
+    /**
+     * SSH_MSG_CHANNEL_DATA.
+     *
+     * @var int
+     */
     private const MSG_CHANNEL_DATA = 94;
 
+    /**
+     * SSH_MSG_CHANNEL_EOF.
+     *
+     * @var int
+     */
     private const MSG_CHANNEL_EOF = 96;
 
+    /**
+     * SSH_MSG_CHANNEL_CLOSE.
+     *
+     * @var int
+     */
     private const MSG_CHANNEL_CLOSE = 97;
 
+    /**
+     * SSH_MSG_CHANNEL_REQUEST.
+     *
+     * @var int
+     */
     private const MSG_CHANNEL_REQUEST = 98;
 
+    /**
+     * SSH_MSG_CHANNEL_SUCCESS.
+     *
+     * @var int
+     */
     private const MSG_CHANNEL_SUCCESS = 99;
 
+    /**
+     * Модуль diffie-hellman-group14-sha256 (RFC 3526) в hex.
+     *
+     * @var string
+     */
     private const GROUP14_P = 'FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF';
 
+    /**
+     * Identification string клиента (RFC 4253).
+     *
+     * @var string
+     */
     private const CLIENT_ID = 'SSH-2.0-CloudCastle_ConnectManager_1.0';
 
+    /**
+     * Транспорт пакетов.
+     *
+     * @var SshWire
+     */
     private SshWire $wire;
 
+    /**
+     * Identification string сервера без CR/LF.
+     *
+     * @var string
+     */
     private string $serverId = '';
 
+    /**
+     * Exchange hash H — session id для USERAUTH.
+     *
+     * @var string
+     */
     private string $sessionId = '';
 
+    /**
+     * true после успешной аутентификации до disconnect().
+     *
+     * @var bool
+     */
     private bool $connected = false;
 
+    /**
+     * true после успешного INIT/VERSION SFTP subsystem.
+     *
+     * @var bool
+     */
     private bool $sftpReady = false;
 
+    /**
+     * Локальный channel id (сейчас всегда 0).
+     *
+     * @var int
+     */
     private int $localChannel = 0;
 
+    /**
+     * Remote channel id из OPEN_CONFIRMATION; 0 — канал не открыт.
+     *
+     * @var int
+     */
     private int $remoteChannel = 0;
 
+    /**
+     * Накопленные CHANNEL_DATA до чтения приложением.
+     *
+     * @var string
+     */
     private string $channelBuffer = '';
 
+    /**
+     * Получен CHANNEL_EOF или CHANNEL_CLOSE.
+     *
+     * @var bool
+     */
     private bool $channelEof = false;
 
     /**
-     * @throws ConnectionException
+     * Выполняет identification, KEX, userauth и опционально SFTP INIT.
+     *
+     * @param mixed            $stream     PHP stream resource после TCP connect
+     * @param AuthCredentials  $auth       Password или publickey
+     * @param bool             $preferSftp true — сразу поднять SFTP subsystem
+     *
+     * @throws ConnectionException При неверном stream, отсутствии gmp или ошибке протокола
      */
     public function __construct(mixed $stream, AuthCredentials $auth, bool $preferSftp = false)
     {
@@ -104,6 +251,8 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
 
     /**
      * {@inheritdoc}
+     *
+     * @return bool true после успешного конструктора до disconnect()
      */
     #[\Override]
     public function isConnected(): bool
@@ -113,6 +262,8 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
 
     /**
      * {@inheritdoc}
+     *
+     * Отправляет DISCONNECT (reason 11) и закрывает wire.
      */
     #[\Override]
     public function disconnect(): void
@@ -137,6 +288,12 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
 
     /**
      * {@inheritdoc}
+     *
+     * @param string $command Команда для exec
+     *
+     * @return string Вывод канала до EOF
+     *
+     * @throws ConnectionException При закрытой сессии или ошибке протокола
      */
     #[\Override]
     public function exec(string $command): string
@@ -157,6 +314,10 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
 
     /**
      * {@inheritdoc}
+     *
+     * @param string $payload Байты CHANNEL_DATA
+     *
+     * @throws ConnectionException При закрытой сессии или ошибке записи
      */
     #[\Override]
     public function write(string $payload): void
@@ -176,6 +337,12 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
 
     /**
      * {@inheritdoc}
+     *
+     * @param int $maxLength Максимум байт; ≤0 трактуется как 1
+     *
+     * @return string Фрагмент буфера или ''
+     *
+     * @throws ConnectionException При закрытой сессии
      */
     #[\Override]
     public function read(int $maxLength = 8192): string
@@ -196,6 +363,10 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
 
     /**
      * {@inheritdoc}
+     *
+     * @return SftpClient Клиент поверх этой сессии
+     *
+     * @throws ConnectionException Если SFTP не поднялся
      */
     #[\Override]
     public function openSftp(): SftpClient
@@ -209,7 +380,9 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     /**
      * {@inheritdoc}
      *
-     * @throws ConnectionException
+     * @param string $sftpPayload Тело SFTP без внешнего length
+     *
+     * @throws ConnectionException При ошибке записи
      */
     #[\Override]
     public function sendSftp(string $sftpPayload): void
@@ -220,7 +393,9 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     /**
      * {@inheritdoc}
      *
-     * @throws ConnectionException
+     * @return string Один SFTP payload без внешнего uint32 length
+     *
+     * @throws ConnectionException При ошибке чтения framing
      */
     #[\Override]
     public function receiveSftp(): string
@@ -243,7 +418,11 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Обменивается identification strings (RFC 4253 §4.2).
+     *
+     * @param mixed $stream TCP stream resource
+     *
+     * @throws ConnectionException При ошибке I/O или не-SSH-2 ответе
      */
     private function exchangeIdentification(mixed $stream): void
     {
@@ -275,7 +454,9 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Выполняет KEX: group14-sha256, aes128-ctr, hmac-sha2-256 и включает шифрование.
+     *
+     * @throws ConnectionException При ошибке DH/NEWKEYS
      */
     private function performKeyExchange(): void
     {
@@ -346,7 +527,11 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Запрашивает SSH service (обычно ssh-userauth).
+     *
+     * @param string $service Имя сервиса
+     *
+     * @throws ConnectionException При mismatch имени в SERVICE_ACCEPT
      */
     private function requestService(string $service): void
     {
@@ -360,7 +545,11 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Выбирает password или publickey по полям AuthCredentials.
+     *
+     * @param AuthCredentials $auth Учётные данные
+     *
+     * @throws ConnectionException Если нет ни пароля, ни ключа
      */
     private function authenticate(AuthCredentials $auth): void
     {
@@ -382,7 +571,11 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * USERAUTH password.
+     *
+     * @param AuthCredentials $auth Учётные данные с password
+     *
+     * @throws ConnectionException При отклонении или пустом пароле
      */
     private function authenticatePassword(AuthCredentials $auth): void
     {
@@ -404,7 +597,11 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * USERAUTH publickey (RSA / Ed25519).
+     *
+     * @param AuthCredentials $auth Учётные данные с privateKey
+     *
+     * @throws ConnectionException При ошибке ключа или отклонении сервером
      */
     private function authenticatePublicKey(AuthCredentials $auth): void
     {
@@ -415,7 +612,9 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Ожидает USERAUTH_SUCCESS.
+     *
+     * @throws ConnectionException При FAILURE или неожиданном типе
      */
     private function assertAuthSuccess(): void
     {
@@ -439,7 +638,9 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Открывает session-канал и поднимает SFTP subsystem + INIT.
+     *
+     * @throws ConnectionException Если VERSION не получен
      */
     private function prepareSftp(): void
     {
@@ -467,7 +668,9 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Открывает session-канал, если ещё не открыт.
+     *
+     * @throws ConnectionException При отсутствии OPEN_CONFIRMATION
      */
     private function openSessionChannel(): void
     {
@@ -492,7 +695,11 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Копит CHANNEL_DATA до EOF/CLOSE и сбрасывает remote channel.
+     *
+     * @return string Накопленный вывод
+     *
+     * @throws ConnectionException При ошибке чтения
      */
     private function drainChannel(): string
     {
@@ -510,7 +717,11 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Читает один входящий пакет и обновляет channelBuffer / channelEof.
+     *
+     * @param bool $blocking true — всегда читать; false — пропуск, если буфер уже непуст
+     *
+     * @throws ConnectionException При ошибке wire->receive()
      */
     private function pump(bool $blocking): void
     {
@@ -542,7 +753,13 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Читает пакет и проверяет message type.
+     *
+     * @param int $type Ожидаемый SSH message number
+     *
+     * @return string Полный payload пакета
+     *
+     * @throws ConnectionException При пустом ответе или другом type
      */
     private function expectType(int $type): string
     {
@@ -557,6 +774,16 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
         return $payload;
     }
 
+    /**
+     * Деривация ключей KEX (RFC 4253): HASH(K || H || letter || session_id).
+     *
+     * @param string $kMpint SSH mpint общего секрета K
+     * @param string $h      Exchange hash H
+     * @param string $letter Буква A…F назначения ключа
+     * @param int    $length Нужная длина в байтах
+     *
+     * @return string Ровно $length байт ключевого материала
+     */
     private function deriveKey(string $kMpint, string $h, string $letter, int $length): string
     {
         $key = hash('sha256', $kMpint . $h . $letter . $this->sessionId, true);
@@ -568,7 +795,14 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
         return substr($key, 0, $length);
     }
 
-    private function gmpToBytes(\GMP $value): string
+    /**
+     * Сериализует GMP в беззнаковые big-endian байты.
+     *
+     * @param GMP $value Положительное целое
+     *
+     * @return string Бинарное представление или '' при сбое hex2bin
+     */
+    private function gmpToBytes(GMP $value): string
     {
         $hex = gmp_strval($value, 16);
 
@@ -582,7 +816,9 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
     }
 
     /**
-     * @throws ConnectionException
+     * Гарантирует, что сессия ещё подключена.
+     *
+     * @throws ConnectionException Если connected === false
      */
     private function assertConnected(): void
     {

@@ -13,7 +13,7 @@ use CloudCastle\ConnectManager\Security\EndpointGuard;
 use CloudCastle\ConnectManager\Security\PinnedEndpoint;
 
 /**
- * Устанавливает прикладное SSH/SFTP через нативный NativeSshSession (без Composer-зависимостей).
+ * Устанавливает прикладное SSH/SFTP через NativeSshSession без Composer runtime-зависимостей.
  *
  * @SuppressWarnings("PHPMD.ErrorControlOperator")
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
@@ -21,7 +21,9 @@ use CloudCastle\ConnectManager\Security\PinnedEndpoint;
 final class SshConnector implements SshConnectorInterface
 {
     /**
-     * @param EndpointGuard $guard SSRF-guard
+     * Создаёт коннектор с SSRF-защитой endpoint.
+     *
+     * @param EndpointGuard $guard Проверка и DNS-pinning целевого хоста
      */
     public function __construct(
         private readonly EndpointGuard $guard = new EndpointGuard(),
@@ -31,7 +33,15 @@ final class SshConnector implements SshConnectorInterface
     /**
      * {@inheritdoc}
      *
-     * @throws ConnectionException
+     * Открывает TCP, выполняет SSH handshake/auth и возвращает SshConnection.
+     *
+     * @param string            $protocolId «ssh» или «sftp» (для sftp сразу поднимается subsystem)
+     * @param string            $endpoint   Хост:порт или URI, прошедший EndpointGuard
+     * @param ConnectionOptions $options    Таймауты и AuthCredentials (password или publickey)
+     *
+     * @return ConnectionInterface Экземпляр SshConnection
+     *
+     * @throws ConnectionException Без auth, при TCP/SSH ошибке или SSRF-блокировке
      */
     #[\Override]
     public function connect(
@@ -82,9 +92,14 @@ final class SshConnector implements SshConnectorInterface
     }
 
     /**
-     * @return array{0: string, 1: int}
+     * Извлекает host и TCP-порт из pinned endpoint.
      *
-     * @throws ConnectionException
+     * @param PinnedEndpoint $pinned           Результат EndpointGuard::prepare()
+     * @param string         $originalEndpoint Исходная строка пользователя (fallback для host)
+     *
+     * @return array{0: string, 1: int} [host, port]; port по умолчанию 22
+     *
+     * @throws ConnectionException Если host не извлекается
      */
     private function hostPort(PinnedEndpoint $pinned, string $originalEndpoint): array
     {

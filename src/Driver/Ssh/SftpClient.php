@@ -7,26 +7,37 @@ namespace CloudCastle\ConnectManager\Driver\Ssh;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
 
 /**
- * Прикладной SFTP-клиент поверх нативной SSH-сессии.
+ * Прикладной SFTP-клиент поверх нативной SSH-сессии (без Composer runtime-зависимостей).
  *
  * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  * @SuppressWarnings("PHPMD.ShortVariable")
  */
 final class SftpClient
 {
+    /**
+     * Счётчик request-id для SSH_FXP_* пакетов (нарастающий с 1).
+     *
+     * @var int
+     */
     private int $requestId = 0;
 
     /**
-     * @param SftpChannelInterface $session Канал SFTP
+     * Создаёт клиент над уже готовым SFTP-каналом.
+     *
+     * @param SftpChannelInterface $session Канал sendSftp/receiveSftp
      */
     public function __construct(private readonly SftpChannelInterface $session)
     {
     }
 
     /**
-     * Читает удалённый файл.
+     * Читает удалённый файл целиком через OPEN + READ до EOF.
      *
-     * @throws ConnectionException
+     * @param string $remotePath Абсолютный или относительный путь на сервере
+     *
+     * @return string Содержимое файла (может быть пустым)
+     *
+     * @throws ConnectionException При ошибке OPEN/READ/CLOSE
      */
     public function get(string $remotePath): string
     {
@@ -51,9 +62,12 @@ final class SftpClient
     }
 
     /**
-     * Записывает удалённый файл.
+     * Записывает (создаёт/перезаписывает) удалённый файл через OPEN + WRITE.
      *
-     * @throws ConnectionException
+     * @param string $remotePath Абсолютный или относительный путь на сервере
+     * @param string $contents   Байты для записи (в т.ч. бинарные)
+     *
+     * @throws ConnectionException При ошибке OPEN/WRITE/CLOSE
      */
     public function put(string $remotePath, string $contents): void
     {
@@ -71,11 +85,13 @@ final class SftpClient
     }
 
     /**
-     * Список файлов каталога.
+     * Возвращает имена записей каталога (без «.» / «..» фильтрации — как отдал сервер).
      *
-     * @return list<string>
+     * @param string $remotePath Путь к каталогу; по умолчанию текущий «.»
      *
-     * @throws ConnectionException
+     * @return list<string> Имена файлов и подкаталогов; [] если каталог пуст
+     *
+     * @throws ConnectionException При ошибке OPENDIR/READDIR/CLOSE
      */
     public function list(string $remotePath = '.'): array
     {
@@ -100,9 +116,11 @@ final class SftpClient
     }
 
     /**
-     * Создаёт каталог.
+     * Создаёт каталог с правами 0777 (маска сервера может сузить).
      *
-     * @throws ConnectionException
+     * @param string $remotePath Путь нового каталога
+     *
+     * @throws ConnectionException При ненулевом SSH_FXP_STATUS
      */
     public function mkdir(string $remotePath): void
     {
@@ -114,9 +132,11 @@ final class SftpClient
     }
 
     /**
-     * Удаляет файл.
+     * Удаляет файл (не каталог) по пути.
      *
-     * @throws ConnectionException
+     * @param string $remotePath Путь к файлу
+     *
+     * @throws ConnectionException При ненулевом SSH_FXP_STATUS
      */
     public function delete(string $remotePath): void
     {
@@ -126,7 +146,11 @@ final class SftpClient
     }
 
     /**
-     * Проверяет существование пути.
+     * Проверяет существование пути через SSH_FXP_STAT.
+     *
+     * @param string $remotePath Путь к файлу или каталогу
+     *
+     * @return bool true при SSH_FXP_ATTRS; false при ошибке/отсутствии
      */
     public function exists(string $remotePath): bool
     {
@@ -142,7 +166,9 @@ final class SftpClient
     }
 
     /**
-     * Низкоуровневый SFTP-канал.
+     * Возвращает низкоуровневый SFTP-канал для расширенных сценариев.
+     *
+     * @return SftpChannelInterface Тот же канал, что передан в конструктор
      */
     public function resource(): SftpChannelInterface
     {
@@ -150,7 +176,14 @@ final class SftpClient
     }
 
     /**
-     * @throws ConnectionException
+     * Открывает файл и возвращает opaque handle.
+     *
+     * @param string $path  Путь на сервере
+     * @param int    $flags Битовая маска SSH_FXF_* (например READ=1, WRITE|CREAT|TRUNC=0x1A)
+     *
+     * @return string Opaque handle для последующих READ/WRITE/CLOSE
+     *
+     * @throws ConnectionException Если ответ не SSH_FXP_HANDLE
      */
     private function open(string $path, int $flags): string
     {
@@ -175,7 +208,13 @@ final class SftpClient
     }
 
     /**
-     * @throws ConnectionException
+     * Открывает каталог и возвращает opaque handle.
+     *
+     * @param string $path Путь к каталогу
+     *
+     * @return string Opaque handle для READDIR/CLOSE
+     *
+     * @throws ConnectionException Если ответ не SSH_FXP_HANDLE
      */
     private function openDir(string $path): string
     {
@@ -194,7 +233,15 @@ final class SftpClient
     }
 
     /**
-     * @throws ConnectionException
+     * Читает порцию файла по handle.
+     *
+     * @param string $handle Opaque handle из open()
+     * @param int    $offset Смещение в файле (байты от начала)
+     * @param int    $length Сколько байт запросить (обычно ≤ 32768)
+     *
+     * @return string Прочитанные байты или '' при EOF/STATUS
+     *
+     * @throws ConnectionException При неожиданном типе ответа
      */
     private function readHandle(string $handle, int $offset, int $length): string
     {
@@ -229,7 +276,13 @@ final class SftpClient
     }
 
     /**
-     * @throws ConnectionException
+     * Записывает порцию данных по handle.
+     *
+     * @param string $handle Opaque handle из open()
+     * @param int    $offset Смещение записи в файле
+     * @param string $data   Байты для записи
+     *
+     * @throws ConnectionException При ненулевом SSH_FXP_STATUS
      */
     private function writeHandle(string $handle, int $offset, string $data): void
     {
@@ -245,9 +298,13 @@ final class SftpClient
     }
 
     /**
-     * @return list<string>
+     * Читает одну порцию имён из открытого каталога.
      *
-     * @throws ConnectionException
+     * @param string $handle Opaque handle из openDir()
+     *
+     * @return list<string> Имена из SSH_FXP_NAME или [] при EOF/STATUS
+     *
+     * @throws ConnectionException При неожиданном типе ответа
      */
     private function readDir(string $handle): array
     {
@@ -285,7 +342,11 @@ final class SftpClient
     }
 
     /**
-     * @throws ConnectionException
+     * Закрывает file/dir handle.
+     *
+     * @param string $handle Opaque handle
+     *
+     * @throws ConnectionException При ненулевом SSH_FXP_STATUS
      */
     private function closeHandle(string $handle): void
     {
@@ -295,7 +356,11 @@ final class SftpClient
     }
 
     /**
-     * @throws ConnectionException
+     * Ожидает SSH_FXP_STATUS с code=0 для указанного request-id.
+     *
+     * @param int $requestId Идентификатор запроса, на который ждём ответ
+     *
+     * @throws ConnectionException При другом типе, id или ненулевом code
      */
     private function expectStatus(int $requestId): void
     {
@@ -314,6 +379,13 @@ final class SftpClient
         }
     }
 
+    /**
+     * Кодирует uint64 big-endian (старшие 32 бита + младшие 32 бита).
+     *
+     * @param int $value Неотрицательное смещение/длина в байтах
+     *
+     * @return string Ровно 8 байт
+     */
     private function uint64(int $value): string
     {
         $hi = intdiv($value, 4_294_967_296);

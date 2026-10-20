@@ -9,7 +9,7 @@ use CloudCastle\ConnectManager\Exception\ConnectionException;
 use OpenSSLAsymmetricKey;
 
 /**
- * Загрузка ключа и подпись USERAUTH publickey (RSA / Ed25519).
+ * Загрузка PEM private key и подпись USERAUTH publickey (RSA / Ed25519).
  *
  * @SuppressWarnings("PHPMD.ErrorControlOperator")
  * @SuppressWarnings("PHPMD.CyclomaticComplexity")
@@ -19,14 +19,18 @@ use OpenSSLAsymmetricKey;
 final class SshPublicKeyAuth
 {
     /**
+     * Загружает ключ из AuthCredentials и готовит поля для publickey auth.
+     *
+     * @param AuthCredentials $auth Учётные данные с privateKey (PEM или путь к файлу)
+     *
      * @return array{
      *     algorithm: string,
      *     publicBlob: string,
      *     key: OpenSSLAsymmetricKey,
      *     ed25519Secret: string|null
-     * }
+     * } algorithm — rsa-sha2-256 или ssh-ed25519; ed25519Secret — 64 байта seed||pub или null для RSA
      *
-     * @throws ConnectionException
+     * @throws ConnectionException При пустом/битом ключе или неподдерживаемом типе
      */
     public function load(AuthCredentials $auth): array
     {
@@ -36,6 +40,7 @@ final class SshPublicKeyAuth
 
         if ($key === false) {
             $error = openssl_error_string();
+
             throw new ConnectionException(
                 'Не удалось загрузить SSH private key: ' . ($error !== false ? $error : ''),
             );
@@ -61,16 +66,20 @@ final class SshPublicKeyAuth
     }
 
     /**
-     * Собирает USERAUTH_REQUEST publickey (с подписью).
+     * Собирает SSH_MSG_USERAUTH_REQUEST publickey с подписью.
      *
+     * @param string $sessionId Идентификатор сессии из exchange hash H
+     * @param string $username  Имя пользователя на сервере
      * @param array{
      *     algorithm: string,
      *     publicBlob: string,
      *     key: OpenSSLAsymmetricKey,
      *     ed25519Secret: string|null
-     * } $parts
+     * } $parts Результат load()
      *
-     * @throws ConnectionException
+     * @return string Полный payload USERAUTH_REQUEST (type byte = 50)
+     *
+     * @throws ConnectionException Если подпись не удалась
      */
     public function buildRequest(string $sessionId, string $username, array $parts): string
     {
@@ -87,14 +96,20 @@ final class SshPublicKeyAuth
     }
 
     /**
+     * Подписывает данные USERAUTH publickey и упаковывает signature blob.
+     *
+     * @param string $sessionId Идентификатор сессии H
+     * @param string $username  Имя пользователя
      * @param array{
      *     algorithm: string,
      *     publicBlob: string,
      *     key: OpenSSLAsymmetricKey,
      *     ed25519Secret: string|null
-     * } $parts
+     * } $parts Поля ключа
      *
-     * @throws ConnectionException
+     * @return string SSH string(algorithm) + SSH string(raw signature)
+     *
+     * @throws ConnectionException Если openssl/sodium подпись не удалась
      */
     private function sign(string $sessionId, string $username, array $parts): string
     {
@@ -123,7 +138,16 @@ final class SshPublicKeyAuth
     }
 
     /**
-     * @throws ConnectionException
+     * Подписывает данные через openssl_sign.
+     *
+     * @param string               $toSign    Байты для подписи
+     * @param OpenSSLAsymmetricKey $key       Закрытый ключ
+     * @param int                  $algorithm Константа OPENSSL_ALGO_*
+     * @param string               $label     Метка для текста исключения
+     *
+     * @return string Сырая подпись (не SSH-обёрнутая)
+     *
+     * @throws ConnectionException При сбое openssl_sign или пустой подписи
      */
     private function opensslSign(string $toSign, OpenSSLAsymmetricKey $key, int $algorithm, string $label): string
     {
@@ -138,14 +162,19 @@ final class SshPublicKeyAuth
     }
 
     /**
+     * Подписывает данные Ed25519 (sodium или openssl).
+     *
+     * @param string $toSign Байты для подписи
      * @param array{
      *     algorithm: string,
      *     publicBlob: string,
      *     key: OpenSSLAsymmetricKey,
      *     ed25519Secret: string|null
-     * } $parts
+     * } $parts Поля ключа; предпочтителен ed25519Secret для sodium
      *
-     * @throws ConnectionException
+     * @return string 64-байтовая подпись Ed25519
+     *
+     * @throws ConnectionException Если оба способа подписи недоступны/упали
      */
     private function signEd25519(string $toSign, array $parts): string
     {
@@ -160,6 +189,7 @@ final class SshPublicKeyAuth
 
         if (!$ok) {
             $error = openssl_error_string();
+
             throw new ConnectionException(
                 'Ed25519 подпись не удалась: ' . ($error !== false ? $error : ''),
             );
@@ -169,7 +199,14 @@ final class SshPublicKeyAuth
     }
 
     /**
-     * @throws ConnectionException
+     * Проверяет, что подпись — непустая строка.
+     *
+     * @param mixed  $signature Результат openssl_sign (by-ref)
+     * @param string $label     Метка для текста исключения
+     *
+     * @return string Непустые байты подписи
+     *
+     * @throws ConnectionException Если значение не string или пустое
      */
     private function requireSignatureBytes(mixed $signature, string $label): string
     {
@@ -181,7 +218,13 @@ final class SshPublicKeyAuth
     }
 
     /**
-     * @throws ConnectionException
+     * Читает PEM из строки или из файла по пути.
+     *
+     * @param string $privateKey PEM-текст или абсолютный/относительный путь к файлу
+     *
+     * @return string Содержимое PEM
+     *
+     * @throws ConnectionException При пустом вводе или ошибке чтения файла
      */
     private function readMaterial(string $privateKey): string
     {
@@ -203,14 +246,19 @@ final class SshPublicKeyAuth
     }
 
     /**
+     * Собирает публичный blob ssh-rsa и алгоритм rsa-sha2-256.
+     *
+     * @param OpenSSLAsymmetricKey $key Закрытый RSA-ключ
+     * @param mixed                $rsa Массив openssl details['rsa'] с ключами n и e
+     *
      * @return array{
      *     algorithm: string,
      *     publicBlob: string,
      *     key: OpenSSLAsymmetricKey,
-     *     ed25519Secret: string|null
+     *     ed25519Secret: null
      * }
      *
-     * @throws ConnectionException
+     * @throws ConnectionException Если нет модуля/экспоненты
      */
     private function rsaParts(OpenSSLAsymmetricKey $key, mixed $rsa): array
     {
@@ -231,14 +279,19 @@ final class SshPublicKeyAuth
     }
 
     /**
+     * Собирает публичный blob ssh-ed25519 и secret для sodium.
+     *
+     * @param OpenSSLAsymmetricKey $key Закрытый Ed25519-ключ
+     * @param mixed                $ed  Массив openssl details['ed25519'] с pub_key/priv_key по 32 байта
+     *
      * @return array{
      *     algorithm: string,
      *     publicBlob: string,
      *     key: OpenSSLAsymmetricKey,
-     *     ed25519Secret: string|null
+     *     ed25519Secret: string
      * }
      *
-     * @throws ConnectionException
+     * @throws ConnectionException При отсутствии или неверной длине ключей
      */
     private function ed25519Parts(OpenSSLAsymmetricKey $key, mixed $ed): array
     {

@@ -61,8 +61,8 @@ Production-ready PHP 8.1+ библиотека Connect Manager (CloudCastle).
 - Non-blocking async connect на Fibers; покрытие ≥99.8%, полный quality-стек
 
 **Минусы** (допустимые)
-- Пакет моложе и менее распространён, чем react/socket, amphp/socket, Guzzle
-- Runtime-зависимость phpseclib для прикладного SSH/SFTP
+- Пакет моложе и менее распространён, чем react/socket, amphp/socket, Guzzle, phpseclib
+- Нативный SSH/SFTP на openssl+gmp (без Composer runtime-deps); для Ed25519 желателен ext-sodium
 
 ## Когда применять
 
@@ -100,6 +100,16 @@ $ssh = $manager->ssh(
 );
 echo $ssh->exec('uname -a');
 $ssh->close();
+
+$sshKey = $manager->ssh(
+    'example.com:22',
+    \CloudCastle\ConnectManager\Contract\AuthCredentials::withPublicKey(
+        'user',
+        '/home/user/.ssh/id_rsa',
+        null,
+    ),
+);
+$sshKey->close();
 
 // Логическое соединение для протокола без native-транспорта:
 $adsl = $manager->connect('adsl', 'line-1', $options);

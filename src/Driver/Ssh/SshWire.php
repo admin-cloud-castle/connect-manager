@@ -7,7 +7,7 @@ namespace CloudCastle\ConnectManager\Driver\Ssh;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
 
 /**
- * Низкоуровневый обмен SSH-пакетами (plain / AES-128-CTR + HMAC-SHA256).
+ * Низкоуровневый обмен SSH-пакетами: plain и AES-128-CTR + HMAC-SHA256.
  *
  * @SuppressWarnings("PHPMD.ErrorControlOperator")
  * @SuppressWarnings("PHPMD.CyclomaticComplexity")
@@ -15,29 +15,80 @@ use CloudCastle\ConnectManager\Exception\ConnectionException;
  */
 final class SshWire
 {
+    /**
+     * Порядковый номер исходящих пакетов (для MAC).
+     *
+     * @var int
+     */
     private int $sendSeq = 0;
 
+    /**
+     * Порядковый номер входящих пакетов (для MAC).
+     *
+     * @var int
+     */
     private int $recvSeq = 0;
 
+    /**
+     * true после успешного NEWKEYS и enableEncryption().
+     *
+     * @var bool
+     */
     private bool $encrypted = false;
 
+    /**
+     * Ключ шифрования client→server (16 байт для aes-128-ctr).
+     *
+     * @var string
+     */
     private string $clientToServerKey = '';
 
+    /**
+     * Ключ шифрования server→client.
+     *
+     * @var string
+     */
     private string $serverToClientKey = '';
 
+    /**
+     * IV/counter client→server (16 байт).
+     *
+     * @var string
+     */
     private string $clientToServerIv = '';
 
+    /**
+     * IV/counter server→client (16 байт).
+     *
+     * @var string
+     */
     private string $serverToClientIv = '';
 
+    /**
+     * Ключ HMAC client→server (32 байта для hmac-sha2-256).
+     *
+     * @var string
+     */
     private string $clientToServerMacKey = '';
 
+    /**
+     * Ключ HMAC server→client.
+     *
+     * @var string
+     */
     private string $serverToClientMacKey = '';
 
-    /** @var resource|null */
+    /**
+     * TCP stream или null после close().
+     *
+     * @var resource|null
+     */
     private $stream;
 
     /**
-     * @param resource $stream TCP stream
+     * Привязывает wire к уже открытому TCP stream.
+     *
+     * @param resource $stream Поток после TCP connect (binary-safe)
      */
     public function __construct($stream)
     {
@@ -45,7 +96,14 @@ final class SshWire
     }
 
     /**
-     * Включает шифрование после NEWKEYS.
+     * Включает шифрование и MAC после обмена NEWKEYS.
+     *
+     * @param string $clientToServerKey    Ключ AES client→server (16 байт)
+     * @param string $serverToClientKey    Ключ AES server→client (16 байт)
+     * @param string $clientToServerIv     IV/counter client→server (16 байт)
+     * @param string $serverToClientIv     IV/counter server→client (16 байт)
+     * @param string $clientToServerMacKey Ключ HMAC client→server (32 байта)
+     * @param string $serverToClientMacKey Ключ HMAC server→client (32 байта)
      */
     public function enableEncryption(
         string $clientToServerKey,
@@ -65,9 +123,11 @@ final class SshWire
     }
 
     /**
-     * Отправляет payload (без packet_length/padding).
+     * Отправляет SSH payload (без packet_length/padding — их добавляет метод).
      *
-     * @throws ConnectionException
+     * @param string $payload Содержимое пакета начиная с message type byte
+     *
+     * @throws ConnectionException При ошибке encrypt/write или закрытом stream
      */
     public function send(string $payload): void
     {
@@ -107,9 +167,11 @@ final class SshWire
     }
 
     /**
-     * Читает следующий пакет и возвращает payload (без padding).
+     * Читает следующий SSH-пакет и возвращает payload без padding.
      *
-     * @throws ConnectionException
+     * @return string Payload начиная с message type; '' не ожидается при успехе
+     *
+     * @throws ConnectionException При ошибке decrypt/MAC/read или битом packet_length
      */
     public function receive(): string
     {
@@ -180,7 +242,7 @@ final class SshWire
     }
 
     /**
-     * Закрывает stream.
+     * Закрывает TCP stream и обнуляет ссылку (повторный вызов безопасен).
      */
     public function close(): void
     {
@@ -193,7 +255,11 @@ final class SshWire
     }
 
     /**
-     * @throws ConnectionException
+     * Пишет все байты в stream (цикл fwrite до полного отправления).
+     *
+     * @param string $data Полный кадр (plain или ciphertext+MAC)
+     *
+     * @throws ConnectionException При ошибке или нулевой записи
      */
     private function writeAll(string $data): void
     {
@@ -213,7 +279,13 @@ final class SshWire
     }
 
     /**
-     * @throws ConnectionException
+     * Читает ровно $length байт из stream.
+     *
+     * @param int $length Сколько байт нужно; при ≤0 цикл не выполняется
+     *
+     * @return string Ровно $length байт
+     *
+     * @throws ConnectionException При EOF или ошибке fread
      */
     private function readExact(int $length): string
     {
@@ -240,9 +312,11 @@ final class SshWire
     }
 
     /**
-     * @return resource
+     * Возвращает открытый stream или бросает, если уже close().
      *
-     * @throws ConnectionException
+     * @return resource Открытый TCP stream
+     *
+     * @throws ConnectionException Если stream закрыт
      */
     private function openStream()
     {
@@ -256,7 +330,12 @@ final class SshWire
     }
 
     /**
-     * Инкремент AES-CTR IV на N блоков (big-endian counter в последних 8 байтах упрощённо: весь IV как counter).
+     * Инкрементирует AES-CTR IV на указанное число блоков (big-endian counter по всем 16 байтам).
+     *
+     * @param string $iv     Текущий IV (16 байт)
+     * @param int    $blocks Сколько блоков прибавить; при <1 возвращается исходный IV
+     *
+     * @return string Новый IV той же длины
      */
     private function advanceCtr(string $iv, int $blocks): string
     {

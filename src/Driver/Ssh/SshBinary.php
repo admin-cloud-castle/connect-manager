@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace CloudCastle\ConnectManager\Driver\Ssh;
 
 /**
- * Кодирование/декодирование SSH binary types (RFC 4251).
+ * Кодирование и декодирование бинарных типов SSH (RFC 4251).
  */
 final class SshBinary
 {
     /**
-     * uint32 big-endian.
+     * Кодирует беззнаковое 32-битное целое в big-endian.
+     *
+     * @param int $value Значение в диапазоне 0…2³²−1 (старшие биты обрезаются pack)
+     *
+     * @return string Ровно 4 байта
      */
     public static function uint32(int $value): string
     {
@@ -18,7 +22,12 @@ final class SshBinary
     }
 
     /**
-     * Читает uint32.
+     * Читает uint32 из буфера и сдвигает смещение на 4 байта.
+     *
+     * @param string $buffer Исходный бинарный буфер
+     * @param int    $offset Текущая позиция чтения; после вызова — следующая позиция
+     *
+     * @return int Прочитанное значение или 0 при повреждённых данных
      *
      * @param-out int $offset
      */
@@ -44,7 +53,11 @@ final class SshBinary
     }
 
     /**
-     * SSH string: uint32 length + bytes.
+     * Кодирует SSH string: uint32 длина + содержимое.
+     *
+     * @param string $value Произвольные байты (включая бинарные)
+     *
+     * @return string Закодированная строка
      */
     public static function sshString(string $value): string
     {
@@ -52,7 +65,12 @@ final class SshBinary
     }
 
     /**
-     * Читает SSH string.
+     * Читает SSH string и сдвигает смещение.
+     *
+     * @param string $buffer Исходный бинарный буфер
+     * @param int    $offset Текущая позиция чтения
+     *
+     * @return string Содержимое строки или '' при выходе за границы буфера
      *
      * @param-out int $offset
      */
@@ -71,9 +89,11 @@ final class SshBinary
     }
 
     /**
-     * Name-list.
+     * Кодирует name-list как SSH string со значениями через запятую.
      *
-     * @param list<string> $names
+     * @param list<string> $names Имена алгоритмов/сервисов без запятых внутри
+     *
+     * @return string Закодированный name-list
      */
     public static function nameList(array $names): string
     {
@@ -81,7 +101,11 @@ final class SshBinary
     }
 
     /**
-     * mpint из положительного бинарного big-endian.
+     * Кодирует положительный mpint из big-endian байтов (с ведущим \x00 при старшем бите).
+     *
+     * @param string $bytes Беззнаковое big-endian представление числа
+     *
+     * @return string SSH mpint
      */
     public static function mpint(string $bytes): string
     {
@@ -93,7 +117,12 @@ final class SshBinary
     }
 
     /**
-     * Читает mpint как бинарную строку без знака.
+     * Читает mpint как беззнаковую бинарную строку (ведущий нулевой байт знака снимается).
+     *
+     * @param string $buffer Исходный бинарный буфер
+     * @param int    $offset Текущая позиция чтения
+     *
+     * @return string Байты модуля без знакового префикса
      *
      * @param-out int $offset
      */
