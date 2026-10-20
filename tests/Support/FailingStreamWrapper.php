@@ -49,14 +49,14 @@ final class FailingStreamWrapper
         return true;
     }
 
-    public function stream_write(string $data): false
+    public function stream_write(string $data): int|false
     {
         unset($data);
 
         return false;
     }
 
-    public function stream_read(int $count): false
+    public function stream_read(int $count): string|false
     {
         unset($count);
 
