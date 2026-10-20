@@ -57,12 +57,20 @@ return [
         ]),
     ],
     [
-        'feature' => 'HTTP(S) как транспортный клиент',
+        'feature' => 'HTTP(S) прикладной клиент (JSON/form/redirects)',
         'packages' => $yes(['ours' => true, 'guzzlehttp/guzzle' => true]),
     ],
     [
         'feature' => 'SSH / SFTP прикладной стек',
         'packages' => $yes(['ours' => true, 'phpseclib/phpseclib' => true]),
+    ],
+    [
+        'feature' => 'SSRF-guard с DNS-resolve и anti-rebinding',
+        'packages' => $yes(['ours' => true]),
+    ],
+    [
+        'feature' => 'Non-blocking async connect (STREAM_CLIENT_ASYNC_CONNECT)',
+        'packages' => $yes(['ours' => true, 'react/socket' => true, 'amphp/socket' => true]),
     ],
     [
         'feature' => 'Логические соединения для L1/L2 без native PHP',
@@ -111,8 +119,12 @@ return [
         'packages' => $yes(['ours' => true]),
     ],
     [
+        'feature' => 'Минимум runtime-зависимостей (только phpseclib для SSH/SFTP)',
+        'packages' => $yes(['ours' => true]),
+    ],
+    [
         'feature' => 'Ноль runtime-зависимостей Composer',
-        'packages' => $yes(['ours' => true, 'clue/socket-raw' => true]),
+        'packages' => $yes(['clue/socket-raw' => true]),
     ],
     [
         'feature' => 'Raw sockets (ext-sockets)',

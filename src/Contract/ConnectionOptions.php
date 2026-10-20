@@ -6,8 +6,11 @@ namespace CloudCastle\ConnectManager\Contract;
 
 /**
  * Опции открытия и эксплуатации соединения.
+ *
  * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
  * @SuppressWarnings("PHPMD.LongVariable")
+ * @SuppressWarnings("PHPMD.ExcessiveParameterList")
+ * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  */
 final class ConnectionOptions
 {
@@ -49,6 +52,10 @@ final class ConnectionOptions
          */
         private readonly array $streamContext = [],
         string $mode = 'sync',
+        /**
+         * Учётные данные SSH/SFTP / HTTP Basic.
+         */
+        private readonly ?AuthCredentials $auth = null,
     ) {
         $this->connectTimeout = $connectTimeout > 0.0 ? $connectTimeout : 5.0;
         $this->ioTimeout = $ioTimeout > 0.0 ? $ioTimeout : 30.0;
@@ -122,19 +129,19 @@ final class ConnectionOptions
     }
 
     /**
+     * Учётные данные или null.
+     */
+    public function auth(): ?AuthCredentials
+    {
+        return $this->auth;
+    }
+
+    /**
      * Копия с другим режимом.
      */
     public function withMode(string $mode): self
     {
-        return new self(
-            $this->connectTimeout,
-            $this->ioTimeout,
-            $this->verifyPeer,
-            $this->blockPrivateAddresses,
-            $this->allowInsecure,
-            $this->streamContext,
-            $mode,
-        );
+        return $this->copy(mode: $mode);
     }
 
     /**
@@ -142,14 +149,61 @@ final class ConnectionOptions
      */
     public function allowPrivateAddresses(): self
     {
+        return $this->copy(blockPrivateAddresses: false);
+    }
+
+    /**
+     * Копия с учётными данными.
+     */
+    public function withAuth(AuthCredentials $auth): self
+    {
+        return $this->copy(auth: $auth, replaceAuth: true);
+    }
+
+    /**
+     * Копия с TLS peer_name / SNI для IP-pinned connect.
+     */
+    public function withTlsPeerName(string $peerName): self
+    {
+        $context = $this->streamContext;
+        $ssl = [];
+
+        if (isset($context['ssl']) && is_array($context['ssl'])) {
+            /** @var array<string, mixed> $ssl */
+            $ssl = $context['ssl'];
+        }
+
+        $ssl['peer_name'] = $peerName;
+        $context['ssl'] = $ssl;
+
+        return $this->copy(streamContext: $context);
+    }
+
+    /**
+     * Создаёт копию с переопределёнными полями.
+     *
+     * @param array<string, mixed>|null $streamContext
+     */
+    private function copy(
+        ?float $connectTimeout = null,
+        ?float $ioTimeout = null,
+        ?bool $verifyPeer = null,
+        ?bool $blockPrivateAddresses = null,
+        ?bool $allowInsecure = null,
+        ?array $streamContext = null,
+        ?string $mode = null,
+        ?AuthCredentials $auth = null,
+        bool $replaceAuth = false,
+    ): self {
         return new self(
-            $this->connectTimeout,
-            $this->ioTimeout,
-            $this->verifyPeer,
-            false,
-            $this->allowInsecure,
-            $this->streamContext,
-            $this->mode,
+            $connectTimeout ?? $this->connectTimeout,
+            $ioTimeout ?? $this->ioTimeout,
+            $verifyPeer ?? $this->verifyPeer,
+            $blockPrivateAddresses ?? $this->blockPrivateAddresses,
+            $allowInsecure ?? $this->allowInsecure,
+            $streamContext ?? $this->streamContext,
+            $mode ?? $this->mode,
+            $replaceAuth || $auth instanceof AuthCredentials ? $auth : $this->auth,
         );
     }
 }

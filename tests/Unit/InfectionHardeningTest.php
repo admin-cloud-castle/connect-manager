@@ -391,12 +391,12 @@ final class InfectionHardeningTest extends TestCase
                 static function (ConnectionInterface $connection) use (&$held): never {
                     $held = $connection;
 
-                    throw new \RuntimeException('boom');
+                    throw new ConnectManagerException('boom');
                 },
                 ConnectionOptions::defaults()->allowPrivateAddresses(),
             );
             self::fail('expected');
-        } catch (\RuntimeException $exception) {
+        } catch (ConnectManagerException $exception) {
             self::assertSame('boom', $exception->getMessage());
             self::assertInstanceOf(ConnectionInterface::class, $held);
             self::assertFalse($held->isOpen());
@@ -461,9 +461,9 @@ final class InfectionHardeningTest extends TestCase
     }
 
     /**
-     * Fiber suspend вызывает select; min timeout = 1 секунда.
+     * Fiber suspend передаёт дробный таймаут как секунды + микросекунды.
      */
-    public function testFiberSuspendInvokesSelectorWithMinSecond(): void
+    public function testFiberSuspendInvokesSelectorWithMicroseconds(): void
     {
         $selector = new RecordingStreamSelector(1);
         $runtime = new FiberAsyncRuntime($selector);
@@ -475,7 +475,8 @@ final class InfectionHardeningTest extends TestCase
         });
 
         self::assertSame(1, $selector->calls);
-        self::assertSame(1, $selector->lastSeconds);
+        self::assertSame(0, $selector->lastSeconds);
+        self::assertSame(250000, $selector->lastMicroseconds);
         self::assertFalse($selector->calledInsideFiber);
         fclose($pipes[0]);
         fclose($pipes[1]);

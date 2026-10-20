@@ -122,7 +122,7 @@ final class ProtocolRegistryTest extends TestCase
 
         self::assertCount(ProtocolCatalog::size(), $parts);
         self::assertSame(
-            '6339fc90e17d86e927f665ec7a5cb4f2971a3bd4d597bf650d60dd2dcec796e8',
+            '428bcfe73132b58d3a2366d293b6f1974ae506c1b69ca28dcb0bc5a0c1483c8b',
             hash('sha256', implode("\n", $parts)),
         );
     }

@@ -140,6 +140,11 @@ final class TcpConnectTest extends TestCase
     public function testUnixSocket(): void
     {
         $dir = sys_get_temp_dir();
+
+        if ($dir === '') {
+            self::fail('sys_get_temp_dir вернул пустую строку');
+        }
+
         $path = $dir . DIRECTORY_SEPARATOR . 'cc-cm-' . bin2hex(random_bytes(4)) . '.sock';
         self::assertStringStartsWith($dir, $path);
 

@@ -1,6 +1,6 @@
 {
     "name": "cloud-castle/connect-manager",
-    "description": "Унифицированный менеджер сетевых соединений PHP 8.1+: реестр протоколов OSI, TCP/UDP/TLS/Unix/socket, sync и async (Fibers), пул, SSRF-guard.",
+    "description": "Унифицированный менеджер сетевых соединений PHP 8.1+: OSI-реестр, TCP/UDP/TLS/Unix, HTTP/SSH/SFTP, sync/async (Fibers), пул, SSRF-guard.",
     "license": "MIT",
     "type": "library",
     "keywords": [
@@ -37,7 +37,8 @@
         "security": "https://github.com/admin-cloud-castle/connect-manager/security/advisories/new"
     },
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.1",
+        "phpseclib/phpseclib": "^3.0"
     },
     "require-dev": {
         "deptrac/deptrac": "^2.0",

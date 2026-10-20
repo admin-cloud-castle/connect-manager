@@ -9,8 +9,10 @@
 | Единый Connection API для любого протокола | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
 | Реестр протоколов OSI (100+) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
 | TCP / UDP / Unix / TLS нативные stream | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | Connect Manager |
-| HTTP(S) как транспортный клиент | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | Connect Manager |
+| HTTP(S) прикладной клиент (JSON/form/redirects) | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | Connect Manager |
 | SSH / SFTP прикладной стек | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | Connect Manager |
+| SSRF-guard с DNS-resolve и anti-rebinding | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
+| Non-blocking async connect (STREAM_CLIENT_ASYNC_CONNECT) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | Connect Manager |
 | Логические соединения для L1/L2 без native PHP | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
 | Sync режим (обычное PHP-приложение) | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | Connect Manager |
 | Async режим (Fibers / event-loop) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | Connect Manager |
@@ -20,7 +22,8 @@
 | TLS verify peer по умолчанию | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | Connect Manager |
 | Генераторы чтения (экономия памяти) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
 | Пользовательская регистрация протоколов | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
-| Ноль runtime-зависимостей Composer | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | Connect Manager |
+| Минимум runtime-зависимостей (только phpseclib для SSH/SFTP) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Connect Manager |
+| Ноль runtime-зависимостей Composer | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | clue/socket-raw |
 | Raw sockets (ext-sockets) | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | Connect Manager |
 | Только HTTP-ориентированный API | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | guzzlehttp/guzzle |
 | Только ReactPHP event-loop | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | react/socket |

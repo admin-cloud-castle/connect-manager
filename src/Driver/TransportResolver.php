@@ -38,6 +38,7 @@ final class TransportResolver
         'pop3' => 'tcp',
         'pop3s' => 'tls',
         'ssh' => 'tcp',
+        'sftp' => 'tcp',
         'telnet' => 'tcp',
         'dns' => 'udp',
         'ntp' => 'udp',
@@ -97,6 +98,7 @@ final class TransportResolver
         'https' => 443,
         'ftp' => 21,
         'ssh' => 22,
+        'sftp' => 22,
         'telnet' => 23,
         'smtp' => 25,
         'dns' => 53,
@@ -209,19 +211,23 @@ final class TransportResolver
      */
     private function ensurePort(string $protocolId, string $endpoint): string
     {
-        if (str_starts_with($endpoint, '[')) {
-            if (str_contains($endpoint, ']:')) {
-                return $endpoint;
-            }
-
-            return $this->appendDefaultPort($protocolId, $endpoint);
-        }
-
-        if ($this->hasExplicitPort($endpoint)) {
+        if ($this->endpointHasPort($endpoint)) {
             return $endpoint;
         }
 
         return $this->appendDefaultPort($protocolId, $endpoint);
+    }
+
+    /**
+     * Есть ли уже порт у IPv6-[...] или host:port.
+     */
+    private function endpointHasPort(string $endpoint): bool
+    {
+        if (str_starts_with($endpoint, '[')) {
+            return str_contains($endpoint, ']:');
+        }
+
+        return $this->hasExplicitPort($endpoint);
     }
 
     /**
