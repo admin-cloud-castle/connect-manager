@@ -1,13 +1,27 @@
 {
     "name": "cloud-castle/connect-manager",
-    "description": "Production-ready PHP 8.1+ Connect Manager library (CloudCastle).",
+    "description": "Унифицированный менеджер сетевых соединений PHP 8.1+: реестр протоколов OSI, TCP/UDP/TLS/Unix/socket, sync и async (Fibers), пул, SSRF-guard.",
     "license": "MIT",
     "type": "library",
     "keywords": [
         "php",
+        "php8",
         "library",
         "cloudcastle",
-        "connect-manager"
+        "connect-manager",
+        "networking",
+        "sockets",
+        "tcp",
+        "udp",
+        "tls",
+        "ssh",
+        "http",
+        "async",
+        "osi",
+        "protocols",
+        "connection-pool",
+        "stream",
+        "psr"
     ],
     "authors": [
         {
@@ -15,11 +29,11 @@
             "email": "admin.cloudcastle@gmail.com"
         }
     ],
-    "homepage": "https://cloud-castle.ru/connect-manager",
+    "homepage": "https://admin-cloud-castle.github.io/connect-manager/",
     "support": {
         "issues": "https://github.com/admin-cloud-castle/connect-manager/issues",
         "source": "https://github.com/admin-cloud-castle/connect-manager",
-        "docs": "https://cloud-castle.ru/connect-manager",
+        "docs": "https://admin-cloud-castle.github.io/connect-manager/",
         "security": "https://github.com/admin-cloud-castle/connect-manager/security/advisories/new"
     },
     "require": {

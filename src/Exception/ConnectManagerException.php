@@ -9,6 +9,6 @@ use RuntimeException;
 /**
  * Базовое исключение пакета Connect Manager.
  */
-final class ConnectManagerException extends RuntimeException
+class ConnectManagerException extends RuntimeException
 {
 }

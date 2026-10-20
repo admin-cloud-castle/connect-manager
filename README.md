@@ -50,23 +50,25 @@ Production-ready PHP 8.1+ библиотека Connect Manager (CloudCastle).
 
 ## Зачем
 
-Production-ready PHP 8.1+ библиотека Connect Manager (CloudCastle).
+Единый API сетевых соединений для PHP 8.1+: любой протокол из реестра OSI (+ socket/unix/tls), sync и async на Fibers без React/Amp.
 
 Краткая выжимка:
 
 **Плюсы**
-- PHP 8.1+, строгие типы, полный quality-стек в CI
-- Цель эталона: покрытие ≥99.8%, Infection MSI 100% (по Coveralls / Quality CI)
-- Минимум runtime-зависимостей
+- Суперсет возможностей connect/socket/HTTP/SSH-библиотек в одном Connection API
+- 150+ протоколов в реестре, логические соединения для L1/L2 без native PHP
+- SSRF-guard и TLS verify peer по умолчанию; ноль runtime-зависимостей Composer
+- Покрытие ≥99.8%, полный quality-стек
 
-**Минусы** (допустимые по эталону CloudCastle)
-- Пакет моложе и менее распространён, чем зрелые аналоги
-- Меньше установок/звёзд на старте
+**Минусы** (допустимые)
+- Пакет моложе и менее распространён, чем react/socket, amphp/socket, Guzzle, phpseclib
+- Потребление памяти может быть выше минималистичных raw-socket обёрток ради функционала
 
 ## Когда применять
 
-- Новый код на PHP 8.1+, где нужны предсказуемые контракты и зелёный CI
-- Проекты экосистемы CloudCastle / `cloud-castle/*`
+- Нужен один клиент для TCP/UDP/TLS/Unix/HTTP и прикладных схем без зоопарка библиотек
+- Sync CLI/FPM и async (Fibers) в одном коде
+- Экосистема CloudCastle / строгие требования к security defaults
 
 ## Установка
 
@@ -82,10 +84,20 @@ composer require cloud-castle/connect-manager
 declare(strict_types=1);
 
 use CloudCastle\ConnectManager\ConnectManager;
+use CloudCastle\ConnectManager\Contract\ConnectionOptions;
 
-$pkg = new ConnectManager();
-echo $pkg->name();
+$manager = new ConnectManager();
+$options = ConnectionOptions::defaults()->allowPrivateAddresses();
+
+$tcp = $manager->connect('tcp', '127.0.0.1:8080', $options);
+$tcp->write("ping\n");
+$tcp->close();
+
+// Логическое соединение для протокола без native-транспорта:
+$adsl = $manager->connect('adsl', 'line-1', $options);
 ```
+
+Сравнение с аналогами (таблицы фич/порогов): [Wiki Comparison](https://github.com/admin-cloud-castle/connect-manager/wiki/Comparison).
 
 ## Документация
 
