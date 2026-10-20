@@ -38,6 +38,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(\CloudCastle\ConnectManager\Exception\TimeoutException::class)]
 #[UsesClass(\CloudCastle\ConnectManager\Driver\Http\HttpClient::class)]
 #[UsesClass(\CloudCastle\ConnectManager\Driver\Ssh\SshConnector::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Security\PinnedEndpoint::class)]
 /**
  * @SuppressWarnings("PHPMD.StaticAccess")
  * @SuppressWarnings("PHPMD.ShortVariable")
