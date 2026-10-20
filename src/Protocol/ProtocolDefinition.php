@@ -14,49 +14,19 @@ use CloudCastle\ConnectManager\Contract\ProtocolDefinitionInterface;
 final class ProtocolDefinition implements ProtocolDefinitionInterface
 {
     /**
-     * @var non-empty-string
-     */
-    private string $id;
-
-    /**
-     * @var non-empty-string
-     */
-    private string $name;
-
-    private int $osiLayer;
-
-    /**
-     * @var non-empty-string
-     */
-    private string $transport;
-
-    private bool $nativeConnectable;
-
-    /**
-     * @var non-empty-string
-     */
-    private string $defaultScheme;
-
-    /**
      * @param non-empty-string $id
      * @param non-empty-string $name
      * @param non-empty-string $transport
      * @param non-empty-string $defaultScheme
      */
     public function __construct(
-        string $id,
-        string $name,
-        int $osiLayer,
-        string $transport,
-        bool $nativeConnectable,
-        string $defaultScheme,
+        private readonly string $id,
+        private readonly string $name,
+        private readonly int $osiLayer,
+        private readonly string $transport,
+        private readonly bool $nativeConnectable,
+        private readonly string $defaultScheme,
     ) {
-        $this->id = $id;
-        $this->name = $name;
-        $this->osiLayer = $osiLayer;
-        $this->transport = $transport;
-        $this->nativeConnectable = $nativeConnectable;
-        $this->defaultScheme = $defaultScheme;
     }
 
     /**

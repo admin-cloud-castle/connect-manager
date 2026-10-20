@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CloudCastle\ConnectManager\Tests\Unit;
 
 use CloudCastle\ConnectManager\Async\FiberAsyncRuntime;
+use CloudCastle\ConnectManager\Async\NativeStreamSelector;
 use CloudCastle\ConnectManager\Exception\TimeoutException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -13,8 +14,10 @@ use PHPUnit\Framework\TestCase;
  * Тесты FiberAsyncRuntime.
  */
 #[CoversClass(FiberAsyncRuntime::class)]
+#[CoversClass(NativeStreamSelector::class)]
 #[CoversClass(\CloudCastle\ConnectManager\ConnectManager::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Async\FiberAsyncRuntime::class)]
+#[CoversClass(\CloudCastle\ConnectManager\Async\NativeStreamSelector::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Contract\ConnectionOptions::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Connection\LogicalConnection::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Connection\StreamConnection::class)]

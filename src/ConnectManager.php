@@ -28,13 +28,13 @@ final class ConnectManager implements ConnectManagerInterface
      */
     public const VERSION = '1.0.0';
 
-    private ProtocolRegistryInterface $registry;
+    private readonly ProtocolRegistryInterface $registry;
 
-    private ConnectionFactoryInterface $factory;
+    private readonly ConnectionFactoryInterface $factory;
 
-    private ConnectionPoolInterface $pool;
+    private readonly ConnectionPoolInterface $pool;
 
-    private AsyncRuntimeInterface $async;
+    private readonly AsyncRuntimeInterface $async;
 
     /**
      * @param ProtocolRegistryInterface|null  $registry Реестр протоколов
@@ -48,29 +48,10 @@ final class ConnectManager implements ConnectManagerInterface
         ?ConnectionPoolInterface $pool = null,
         ?AsyncRuntimeInterface $async = null,
     ) {
-        if ($registry !== null) {
-            $this->registry = $registry;
-        } else {
-            $this->registry = new ProtocolRegistry();
-        }
-
-        if ($factory !== null) {
-            $this->factory = $factory;
-        } else {
-            $this->factory = new ConnectionFactory($this->registry);
-        }
-
-        if ($pool !== null) {
-            $this->pool = $pool;
-        } else {
-            $this->pool = new ConnectionPool($this->factory);
-        }
-
-        if ($async !== null) {
-            $this->async = $async;
-        } else {
-            $this->async = new FiberAsyncRuntime();
-        }
+        $this->registry = $registry ?? new ProtocolRegistry();
+        $this->factory = $factory ?? new ConnectionFactory($this->registry);
+        $this->pool = $pool ?? new ConnectionPool($this->factory);
+        $this->async = $async ?? new FiberAsyncRuntime();
     }
 
     /**

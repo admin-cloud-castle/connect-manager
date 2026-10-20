@@ -23,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(StreamOpener::class)]
 #[CoversClass(\CloudCastle\ConnectManager\ConnectManager::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Async\FiberAsyncRuntime::class)]
+#[CoversClass(\CloudCastle\ConnectManager\Async\NativeStreamSelector::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Contract\ConnectionOptions::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Connection\LogicalConnection::class)]
 #[CoversClass(\CloudCastle\ConnectManager\Connection\StreamConnection::class)]

@@ -18,15 +18,11 @@ interface AsyncRuntimeInterface
 
     /**
      * Откладывает выполнение до готовности чтения ресурса.
-     *
-     * @param mixed $stream
      */
     public function awaitReadable(mixed $stream, float $timeoutSeconds): void;
 
     /**
      * Откладывает выполнение до готовности записи в ресурс.
-     *
-     * @param mixed $stream
      */
     public function awaitWritable(mixed $stream, float $timeoutSeconds): void;
 }

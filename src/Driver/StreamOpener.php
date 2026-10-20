@@ -118,12 +118,6 @@ final class StreamOpener
             throw new ConnectionException('Ожидался stream resource');
         }
 
-        $seconds = (int) $ioTimeout;
-
-        if ($seconds < 1) {
-            $seconds = 1;
-        }
-
-        stream_set_timeout($stream, $seconds);
+        stream_set_timeout($stream, max(1, (int) $ioTimeout));
     }
 }

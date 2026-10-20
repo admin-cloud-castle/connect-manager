@@ -68,10 +68,6 @@ final class FailingStreamWrapper
         return false;
     }
 
-    public function stream_close(): void
-    {
-    }
-
     public function stream_set_option(int $option, int $arg1, mixed $arg2): bool
     {
         unset($option, $arg1, $arg2);

@@ -19,17 +19,6 @@ final class StreamConnection implements ConnectionInterface
      */
     private $stream;
 
-    private string $protocol;
-
-    private int $osiLayer;
-
-    private ?string $remoteEndpoint;
-
-    /**
-     * @var array<string, mixed>
-     */
-    private array $metadata;
-
     private bool $open;
 
     /**
@@ -38,20 +27,16 @@ final class StreamConnection implements ConnectionInterface
      */
     public function __construct(
         mixed $stream,
-        string $protocol,
-        int $osiLayer,
-        ?string $remoteEndpoint,
-        array $metadata = [],
+        private readonly string $protocol,
+        private readonly int $osiLayer,
+        private readonly ?string $remoteEndpoint,
+        private readonly array $metadata = [],
     ) {
         if (!is_resource($stream)) {
             throw new ConnectionException('Ожидался stream resource');
         }
 
         $this->stream = $stream;
-        $this->protocol = $protocol;
-        $this->osiLayer = $osiLayer;
-        $this->remoteEndpoint = $remoteEndpoint;
-        $this->metadata = $metadata;
         $this->open = true;
         @stream_set_blocking($stream, true);
     }

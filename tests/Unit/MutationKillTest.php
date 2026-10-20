@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CloudCastle\ConnectManager\Tests\Unit;
 
 use CloudCastle\ConnectManager\Async\FiberAsyncRuntime;
+use CloudCastle\ConnectManager\Async\NativeStreamSelector;
 use CloudCastle\ConnectManager\Connection\LogicalConnection;
 use CloudCastle\ConnectManager\Connection\StreamConnection;
 use CloudCastle\ConnectManager\ConnectManager;
@@ -36,9 +37,13 @@ use ReflectionMethod;
  * @SuppressWarnings("PHPMD.StaticAccess")
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  * @SuppressWarnings("PHPMD.ShortVariable")
+ * @SuppressWarnings("PHPMD.TooManyPublicMethods")
+ * @SuppressWarnings("PHPMD.UnusedFormalParameter")
+ * @SuppressWarnings("PHPMD.MissingImport")
  */
 #[CoversClass(ConnectManager::class)]
 #[CoversClass(FiberAsyncRuntime::class)]
+#[CoversClass(NativeStreamSelector::class)]
 #[CoversClass(ConnectionOptions::class)]
 #[CoversClass(LogicalConnection::class)]
 #[CoversClass(StreamConnection::class)]
@@ -133,7 +138,7 @@ final class MutationKillTest extends TestCase
             }
         };
         $pool = new class ($factory) implements ConnectionPoolInterface {
-            public function __construct(private ConnectionFactoryInterface $factory)
+            public function __construct(private readonly ConnectionFactoryInterface $factory)
             {
             }
 

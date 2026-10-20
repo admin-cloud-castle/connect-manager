@@ -162,8 +162,7 @@ final class TransportResolver
         $scheme = self::SCHEME_MAP[$id] ?? $protocol->transport();
 
         if (
-            $scheme === 'none' || $scheme === 'raw' || $scheme === 'serial'
-            || $scheme === 'custom' || $scheme === 'icmp'
+            in_array($scheme, ['none', 'raw', 'serial', 'custom', 'icmp'], true)
         ) {
             throw new ProtocolException(sprintf(
                 'Протокол %s требует пользовательский драйвер (transport=%s)',
@@ -201,17 +200,18 @@ final class TransportResolver
         }
 
         $colon = strrpos($endpoint, ':');
+        $portSuffix = $colon === false ? '' : substr($endpoint, $colon + 1);
 
-        if ($colon !== false && ctype_digit(substr($endpoint, $colon + 1))) {
+        if ($portSuffix !== '' && ctype_digit($portSuffix)) {
             return $endpoint;
         }
 
         $port = self::DEFAULT_PORTS[$protocolId] ?? 0;
 
-        if ($port > 0) {
-            return $endpoint . ':' . $port;
+        if ($port === 0) {
+            return $endpoint;
         }
 
-        return $endpoint;
+        return $endpoint . ':' . $port;
     }
 }

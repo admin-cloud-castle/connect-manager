@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CloudCastle\ConnectManager\Tests\Unit;
 
 use CloudCastle\ConnectManager\Async\FiberAsyncRuntime;
+use CloudCastle\ConnectManager\Async\NativeStreamSelector;
 use CloudCastle\ConnectManager\Connection\LogicalConnection;
 use CloudCastle\ConnectManager\Connection\StreamConnection;
 use CloudCastle\ConnectManager\ConnectManager;
@@ -33,6 +34,7 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversClass(ConnectManager::class)]
 #[CoversClass(FiberAsyncRuntime::class)]
+#[CoversClass(NativeStreamSelector::class)]
 #[CoversClass(ConnectionOptions::class)]
 #[CoversClass(LogicalConnection::class)]
 #[CoversClass(StreamConnection::class)]

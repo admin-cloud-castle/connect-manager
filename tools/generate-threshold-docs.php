@@ -7,12 +7,12 @@
 declare(strict_types=1);
 
 $raw = file_get_contents(__DIR__ . '/../infection.json.dist');
-$decoded = is_string($raw) ? json_decode($raw, true) : null;
 $minMsi = 100;
 
-if (is_array($decoded) && isset($decoded['minMsi']) && is_numeric($decoded['minMsi'])) {
-    $minMsi = (int) $decoded['minMsi'];
+if (is_string($raw) && preg_match('/"minMsi"\s*:\s*(\d+)/', $raw, $matches) === 1) {
+    $minMsi = (int) $matches[1];
 }
+
 $coverageMin = 99.8;
 
 $table = <<<MD

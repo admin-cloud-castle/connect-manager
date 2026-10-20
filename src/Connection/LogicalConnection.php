@@ -16,12 +16,6 @@ use CloudCastle\ConnectManager\Exception\ConnectionException;
  */
 final class LogicalConnection implements ConnectionInterface
 {
-    private string $protocol;
-
-    private int $osiLayer;
-
-    private ?string $remoteEndpoint;
-
     /**
      * @var array<string, mixed>
      */
@@ -30,24 +24,20 @@ final class LogicalConnection implements ConnectionInterface
     /**
      * @var resource|null
      */
-    private $attached = null;
+    private $attached;
 
-    private bool $open;
+    private bool $open = true;
 
     /**
      * @param array<string, mixed> $metadata
      */
     public function __construct(
-        string $protocol,
-        int $osiLayer,
-        ?string $remoteEndpoint,
+        private readonly string $protocol,
+        private readonly int $osiLayer,
+        private readonly ?string $remoteEndpoint,
         array $metadata = [],
     ) {
-        $this->protocol = $protocol;
-        $this->osiLayer = $osiLayer;
-        $this->remoteEndpoint = $remoteEndpoint;
         $this->metadata = $metadata + ['logical' => true];
-        $this->open = true;
     }
 
     /**

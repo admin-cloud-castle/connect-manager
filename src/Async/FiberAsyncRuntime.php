@@ -19,6 +19,16 @@ use Fiber;
  */
 final class FiberAsyncRuntime implements AsyncRuntimeInterface
 {
+    private readonly StreamSelectorInterface $selector;
+
+    /**
+     * @param StreamSelectorInterface|null $selector Селектор I/O (по умолчанию нативный)
+     */
+    public function __construct(?StreamSelectorInterface $selector = null)
+    {
+        $this->selector = $selector ?? new NativeStreamSelector();
+    }
+
     /**
      * {@inheritdoc}
      *
@@ -32,12 +42,13 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
 
         while (!$fiber->isTerminated()) {
             if (!$this->isWaitPayload($value)) {
-                $value = $fiber->resume(null);
+                $value = $fiber->resume();
                 continue;
             }
 
-            $this->wait($value['stream'], $value['op'], (float) $value['timeout']);
-            $value = $fiber->resume(null);
+            $timeout = $value['timeout'];
+            $this->wait($value['stream'], $value['op'], is_int($timeout) ? (float) $timeout : $timeout);
+            $value = $fiber->resume();
         }
 
         return $fiber->getReturn();
@@ -64,10 +75,8 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
     /**
      * Проверяет payload ожидания I/O.
      *
-     * @param mixed $value
      *
      * @phpstan-assert-if-true array{op: string, stream: mixed, timeout: float|int} $value
-     *
      * @psalm-assert-if-true array{op: string, stream: mixed, timeout: float|int} $value
      */
     private function isWaitPayload(mixed $value): bool
@@ -76,11 +85,15 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
             return false;
         }
 
-        if (
-            !array_key_exists('op', $value)
-            || !array_key_exists('stream', $value)
-            || !array_key_exists('timeout', $value)
-        ) {
+        if (!array_key_exists('op', $value)) {
+            return false;
+        }
+
+        if (!array_key_exists('stream', $value)) {
+            return false;
+        }
+
+        if (!array_key_exists('timeout', $value)) {
             return false;
         }
 
@@ -100,7 +113,7 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
     {
         $current = Fiber::getCurrent();
 
-        if ($current === null) {
+        if (!$current instanceof \Fiber) {
             $this->wait($stream, $op, $timeoutSeconds);
 
             return;
@@ -133,27 +146,31 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
             return;
         }
 
-        $seconds = (int) $timeoutSeconds;
-
-        if ($seconds < 1) {
-            $seconds = 1;
-        }
+        $seconds = max(1, (int) $timeoutSeconds);
+        $read = null;
+        $write = null;
 
         if ($op === 'read') {
             $read = [$stream];
-            $write = null;
-        } elseif ($op === 'write') {
-            $read = null;
+        }
+
+        if ($op === 'write') {
             $write = [$stream];
-        } else {
+        }
+
+        if ($read === null && $write === null) {
             throw new TimeoutException(sprintf('Неизвестная операция ожидания: %s', $op));
         }
 
         $except = null;
-        $result = @stream_select($read, $write, $except, $seconds);
+        $result = $this->selector->select($read, $write, $except, $seconds);
 
-        if ($result === false || $result === 0) {
-            throw new TimeoutException(sprintf('Таймаут или ошибка ожидания %s', $op));
+        if ($result === false) {
+            throw new TimeoutException(sprintf('Ошибка ожидания %s', $op));
+        }
+
+        if ($result === 0) {
+            throw new TimeoutException(sprintf('Таймаут ожидания %s', $op));
         }
     }
 }

@@ -14,9 +14,7 @@ use CloudCastle\ConnectManager\Contract\ConnectionPoolInterface;
  */
 final class ConnectionPool implements ConnectionPoolInterface
 {
-    private ConnectionFactoryInterface $factory;
-
-    private int $maxPerKey;
+    private readonly int $maxPerKey;
 
     /**
      * @var array<string, list<ConnectionInterface>>
@@ -27,9 +25,8 @@ final class ConnectionPool implements ConnectionPoolInterface
      * @param ConnectionFactoryInterface $factory   Фабрика
      * @param int                        $maxPerKey Максимум idle на ключ
      */
-    public function __construct(ConnectionFactoryInterface $factory, int $maxPerKey = 8)
+    public function __construct(private readonly ConnectionFactoryInterface $factory, int $maxPerKey = 8)
     {
-        $this->factory = $factory;
         $this->maxPerKey = $maxPerKey > 0 ? $maxPerKey : 8;
     }
 

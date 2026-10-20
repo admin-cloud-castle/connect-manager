@@ -19,13 +19,11 @@ use CloudCastle\ConnectManager\Security\EndpointGuard;
  */
 final class ConnectionFactory implements ConnectionFactoryInterface
 {
-    private ProtocolRegistryInterface $registry;
+    private readonly EndpointGuard $guard;
 
-    private EndpointGuard $guard;
+    private readonly TransportResolver $resolver;
 
-    private TransportResolver $resolver;
-
-    private StreamOpener $opener;
+    private readonly StreamOpener $opener;
 
     /**
      * @param ProtocolRegistryInterface $registry Реестр протоколов
@@ -34,15 +32,14 @@ final class ConnectionFactory implements ConnectionFactoryInterface
      * @param StreamOpener|null         $opener   Открыватель stream
      */
     public function __construct(
-        ProtocolRegistryInterface $registry,
+        private readonly ProtocolRegistryInterface $registry,
         ?EndpointGuard $guard = null,
         ?TransportResolver $resolver = null,
         ?StreamOpener $opener = null,
     ) {
-        $this->registry = $registry;
-        $this->guard = $guard !== null ? $guard : new EndpointGuard();
-        $this->resolver = $resolver !== null ? $resolver : new TransportResolver();
-        $this->opener = $opener !== null ? $opener : new StreamOpener();
+        $this->guard = $guard ?? new EndpointGuard();
+        $this->resolver = $resolver ?? new TransportResolver();
+        $this->opener = $opener ?? new StreamOpener();
     }
 
     /**

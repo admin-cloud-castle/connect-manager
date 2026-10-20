@@ -14,39 +14,17 @@ final class ConnectionOptions
     /**
      * Таймаут соединения в секундах.
      */
-    private float $connectTimeout;
+    private readonly float $connectTimeout;
 
     /**
      * Таймаут чтения/записи в секундах.
      */
-    private float $ioTimeout;
-
-    /**
-     * Проверять TLS peer name / certificate.
-     */
-    private bool $verifyPeer;
-
-    /**
-     * Блокировать частные/link-local адреса (анти-SSRF).
-     */
-    private bool $blockPrivateAddresses;
-
-    /**
-     * Разрешить plaintext без TLS для схем, где TLS опционален.
-     */
-    private bool $allowInsecure;
-
-    /**
-     * Дополнительные флаги контекста stream.
-     *
-     * @var array<string, mixed>
-     */
-    private array $streamContext;
+    private readonly float $ioTimeout;
 
     /**
      * Режим: sync или async-aware (не блокирует фабрику, влияет на runtime).
      */
-    private string $mode;
+    private readonly string $mode;
 
     /**
      * @param array<string, mixed> $streamContext
@@ -54,18 +32,26 @@ final class ConnectionOptions
     public function __construct(
         float $connectTimeout = 5.0,
         float $ioTimeout = 30.0,
-        bool $verifyPeer = true,
-        bool $blockPrivateAddresses = true,
-        bool $allowInsecure = false,
-        array $streamContext = [],
+        /**
+         * Проверять TLS peer name / certificate.
+         */
+        private readonly bool $verifyPeer = true,
+        /**
+         * Блокировать частные/link-local адреса (анти-SSRF).
+         */
+        private readonly bool $blockPrivateAddresses = true,
+        /**
+         * Разрешить plaintext без TLS для схем, где TLS опционален.
+         */
+        private readonly bool $allowInsecure = false,
+        /**
+         * Дополнительные флаги контекста stream.
+         */
+        private readonly array $streamContext = [],
         string $mode = 'sync',
     ) {
         $this->connectTimeout = $connectTimeout > 0.0 ? $connectTimeout : 5.0;
         $this->ioTimeout = $ioTimeout > 0.0 ? $ioTimeout : 30.0;
-        $this->verifyPeer = $verifyPeer;
-        $this->blockPrivateAddresses = $blockPrivateAddresses;
-        $this->allowInsecure = $allowInsecure;
-        $this->streamContext = $streamContext;
         $this->mode = $mode === 'async' ? 'async' : 'sync';
     }
 
