@@ -13,10 +13,10 @@ use CloudCastle\ConnectManager\Driver\Ssh\SftpClient;
 use CloudCastle\ConnectManager\Driver\Ssh\SshConnection;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
 use CloudCastle\ConnectManager\Protocol\ProtocolRegistry;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
 use phpseclib3\Net\SFTP;
 use phpseclib3\Net\SSH2;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Прикладной SSH/SFTP слой.

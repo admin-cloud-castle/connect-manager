@@ -19,8 +19,8 @@ use CloudCastle\ConnectManager\Driver\Http\HttpRequest;
 use CloudCastle\ConnectManager\Driver\Http\HttpResponse;
 use CloudCastle\ConnectManager\Driver\Ssh\SftpClient;
 use CloudCastle\ConnectManager\Driver\Ssh\SshConnection;
-use CloudCastle\ConnectManager\Exception\ConnectManagerException;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
+use CloudCastle\ConnectManager\Exception\ConnectManagerException;
 use CloudCastle\ConnectManager\Pool\ConnectionPool;
 use CloudCastle\ConnectManager\Protocol\ProtocolRegistry;
 

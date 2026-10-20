@@ -85,7 +85,7 @@ final class HttpClientTest extends TestCase
      */
     public function testSendMethodsAndRedirect(): void
     {
-        $factory = new class implements ConnectionFactoryInterface {
+        $factory = new class () implements ConnectionFactoryInterface {
             public int $calls = 0;
 
             #[\Override]
