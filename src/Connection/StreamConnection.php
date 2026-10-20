@@ -153,9 +153,11 @@ final class StreamConnection implements ConnectionInterface
         $this->stream = null;
         $this->open = false;
 
-        if (is_resource($stream)) {
-            fclose($stream);
+        if (!is_resource($stream)) {
+            return;
         }
+
+        fclose($stream);
     }
 
     /**

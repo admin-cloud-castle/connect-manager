@@ -755,13 +755,13 @@ final class InfectionHardeningTest extends TestCase
         $connection = new StreamConnection($stream, 'tcp', 4, null);
         self::assertSame(['x', 'y'], iterator_to_array($connection->readChunks(1)));
 
-        $stream2 = fopen('php://memory', 'r+b');
-        self::assertNotFalse($stream2);
-        $connection2 = new StreamConnection($stream2, 'tcp', 4, null);
+        $raw = MixedValues::memoryStream();
+        $connection2 = new StreamConnection($raw, 'tcp', 4, null);
         $connection2->close();
         $open = new ReflectionProperty(StreamConnection::class, 'open');
         self::assertFalse($open->getValue($connection2));
         self::assertNull($connection2->resource());
+        self::assertFalse(is_resource(MixedValues::loosen($raw)));
 
         $stream3 = fopen('php://memory', 'r+b');
         self::assertNotFalse($stream3);
@@ -770,6 +770,27 @@ final class InfectionHardeningTest extends TestCase
         $open->setValue($connection3, true);
         $this->expectException(ConnectionException::class);
         $connection3->read(1);
+    }
+
+    /**
+     * readChunks останавливается при close() (&&, не ||).
+     */
+    public function testReadChunksStopsAfterClose(): void
+    {
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        fwrite($stream, str_repeat('x', 100));
+        rewind($stream);
+        $connection = new StreamConnection($stream, 'tcp', 4, null);
+        $got = [];
+
+        foreach ($connection->readChunks(10) as $chunk) {
+            $got[] = $chunk;
+            $connection->close();
+        }
+
+        self::assertCount(1, $got);
+        self::assertSame(10, strlen($got[0]));
     }
 
     /**
@@ -785,21 +806,29 @@ final class InfectionHardeningTest extends TestCase
             self::fail('refused');
         } catch (ConnectionException $exception) {
             self::assertStringContainsString('Не удалось открыть', $exception->getMessage());
+            self::assertNotSame('Не удалось открыть tcp://127.0.0.1:1: [0] ', $exception->getMessage());
         }
 
         $server = stream_socket_server('tcp://127.0.0.1:0');
         self::assertNotFalse($server);
         $name = stream_socket_get_name($server, false);
         self::assertIsString($name);
-        $stream = $opener->open('tcp://' . $name, ConnectionOptions::defaults()->allowPrivateAddresses());
+        $oneSecondIo = new ConnectionOptions(5.0, 1.0, true, false, false);
+        $stream = $opener->open(
+            'tcp://' . $name,
+            $oneSecondIo->allowPrivateAddresses(),
+        );
         $meta = stream_get_meta_data($stream);
         self::assertTrue($meta['blocked']);
+        self::assertSame(1, $opener->applyIoTimeout($stream, 1.0));
         fclose($stream);
         fclose($server);
 
         $memory = fopen('php://memory', 'r+b');
         self::assertNotFalse($memory);
-        $opener->applyIoTimeout($memory, 3.0);
+        self::assertSame(3, $opener->applyIoTimeout($memory, 3.0));
         fclose($memory);
+
+        self::assertIsString($opener->lastErrorMessage());
     }
 }

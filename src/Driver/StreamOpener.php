@@ -26,25 +26,42 @@ final class StreamOpener
     public function open(string $uri, ConnectionOptions $options): mixed
     {
         $context = stream_context_create($this->buildContextOptions($options));
-        $errno = 0;
-        $errstr = '';
         $stream = @stream_socket_client(
             $uri,
-            $errno,
-            $errstr,
-            $options->connectTimeout(),
-            STREAM_CLIENT_CONNECT,
-            $context,
+            timeout: $options->connectTimeout(),
+            flags: STREAM_CLIENT_CONNECT,
+            context: $context,
         );
 
         if ($stream === false) {
-            throw $this->createOpenException($uri, $errno, $errstr);
+            throw $this->createOpenException($uri, null, $this->lastErrorMessage());
         }
 
-        $this->applyIoTimeout($stream, $options->ioTimeout());
+        $appliedTimeout = $this->applyIoTimeout($stream, $options->ioTimeout());
+
+        if ($appliedTimeout < 1) {
+            fclose($stream);
+
+            throw new ConnectionException(sprintf('Некорректный I/O timeout: %s', $uri));
+        }
+
         stream_set_blocking($stream, true);
 
         return $stream;
+    }
+
+    /**
+     * Текст последней PHP-ошибки или пустая строка.
+     */
+    public function lastErrorMessage(): string
+    {
+        $last = error_get_last();
+
+        if (!is_array($last)) {
+            return '';
+        }
+
+        return $last['message'];
     }
 
     /**
@@ -111,14 +128,21 @@ final class StreamOpener
      * Применяет I/O timeout к stream (целые секунды).
      *
      * @param mixed $stream Ожидается stream resource
+     *
+     * @return int Фактически запрошенные секунды
+     *
+     * @throws ConnectionException
      */
-    public function applyIoTimeout(mixed $stream, float $ioTimeout): void
+    public function applyIoTimeout(mixed $stream, float $ioTimeout): int
     {
         if (!is_resource($stream)) {
             throw new ConnectionException('Ожидался stream resource');
         }
 
-        stream_set_timeout($stream, $this->resolveIoTimeoutSeconds($ioTimeout));
+        $seconds = $this->resolveIoTimeoutSeconds($ioTimeout);
+        @stream_set_timeout($stream, $seconds);
+
+        return $seconds;
     }
 
     /**
