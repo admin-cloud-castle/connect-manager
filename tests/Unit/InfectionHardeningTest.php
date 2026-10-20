@@ -9,10 +9,13 @@ use CloudCastle\ConnectManager\Async\NativeStreamSelector;
 use CloudCastle\ConnectManager\Connection\LogicalConnection;
 use CloudCastle\ConnectManager\Connection\StreamConnection;
 use CloudCastle\ConnectManager\ConnectManager;
+use CloudCastle\ConnectManager\Contract\AuthCredentials;
 use CloudCastle\ConnectManager\Contract\ConnectionFactoryInterface;
 use CloudCastle\ConnectManager\Contract\ConnectionInterface;
 use CloudCastle\ConnectManager\Contract\ConnectionOptions;
 use CloudCastle\ConnectManager\Driver\ConnectionFactory;
+use CloudCastle\ConnectManager\Driver\Ssh\SftpClient;
+use CloudCastle\ConnectManager\Driver\Ssh\SshConnection;
 use CloudCastle\ConnectManager\Driver\StreamOpener;
 use CloudCastle\ConnectManager\Driver\TransportResolver;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
@@ -26,6 +29,7 @@ use CloudCastle\ConnectManager\Protocol\ProtocolDefinition;
 use CloudCastle\ConnectManager\Protocol\ProtocolRegistry;
 use CloudCastle\ConnectManager\Security\EndpointGuard;
 use CloudCastle\ConnectManager\Tests\Support\EmptyChunkStreamWrapper;
+use CloudCastle\ConnectManager\Tests\Support\FakeSshSession;
 use CloudCastle\ConnectManager\Tests\Support\FixedStreamSelector;
 use CloudCastle\ConnectManager\Tests\Support\MixedValues;
 use CloudCastle\ConnectManager\Tests\Support\RecordingStreamSelector;
@@ -49,6 +53,8 @@ use ReflectionProperty;
  * @SuppressWarnings("PHPMD.ExcessivePublicCount")
  * @SuppressWarnings("PHPMD.MissingImport")
  * @SuppressWarnings("PHPMD.UnusedFormalParameter")
+ * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
+ * @SuppressWarnings("PHPMD.EmptyCatchBlock")
  */
 #[CoversClass(ConnectManager::class)]
 #[CoversClass(FiberAsyncRuntime::class)]
@@ -69,6 +75,10 @@ use ReflectionProperty;
 #[CoversClass(ProtocolException::class)]
 #[CoversClass(SecurityException::class)]
 #[CoversClass(TimeoutException::class)]
+#[CoversClass(SshConnection::class)]
+#[UsesClass(AuthCredentials::class)]
+#[UsesClass(SftpClient::class)]
+#[UsesClass(FakeSshSession::class)]
 #[UsesClass(\CloudCastle\ConnectManager\Driver\Http\HttpClient::class)]
 #[UsesClass(\CloudCastle\ConnectManager\Driver\Ssh\SshConnector::class)]
 #[UsesClass(\CloudCastle\ConnectManager\Security\PinnedEndpoint::class)]
@@ -837,5 +847,78 @@ final class InfectionHardeningTest extends TestCase
 
         error_clear_last();
         self::assertSame('', $opener->lastErrorMessage());
+    }
+
+    /**
+     * ssh/sftp с null options обязаны взять defaults() (Coalesce).
+     */
+    public function testSshSftpNullOptionsCoalesceToDefaults(): void
+    {
+        $auth = AuthCredentials::withPassword('deploy', 'secret');
+        $session = new FakeSshSession();
+        $ssh = new SshConnection($session, 'ssh', 'host.example:22');
+        $factory = $this->createMock(ConnectionFactoryInterface::class);
+        $factory->expects(self::exactly(2))
+            ->method('connect')
+            ->willReturnCallback(
+                static function (string $protocol, string $endpoint, ConnectionOptions $options) use ($auth, $ssh): SshConnection {
+                    self::assertContains($protocol, ['ssh', 'sftp']);
+                    self::assertSame('host.example:22', $endpoint);
+                    self::assertSame($auth, $options->auth());
+
+                    return $ssh;
+                },
+            );
+
+        $manager = new ConnectManager(factory: $factory);
+        self::assertSame($ssh, $manager->ssh('host.example:22', $auth, null));
+        self::assertInstanceOf(SftpClient::class, $manager->sftp('host.example:22', $auth, null));
+    }
+
+    /**
+     * EndpointGuard: trim, shape, localhost-синонимы, IPv6-скобки, host:port.
+     */
+    public function testEndpointGuardInfectionEdges(): void
+    {
+        $guard = new EndpointGuard();
+
+        try {
+            $guard->prepare("  \t  ", ConnectionOptions::defaults());
+            self::fail('whitespace-only');
+        } catch (SecurityException $exception) {
+            self::assertStringContainsString('Пустой endpoint', $exception->getMessage());
+        }
+
+        try {
+            $guard->prepare("a\nb", ConnectionOptions::defaults());
+            self::fail('control');
+        } catch (SecurityException $exception) {
+            self::assertStringContainsString('управляющие', $exception->getMessage());
+        }
+
+        $this->expectSecurityGuard($guard, 'localhost');
+        $this->expectSecurityGuard($guard, 'app.localhost');
+        $this->expectSecurityGuard($guard, '0.0.0.0');
+
+        self::assertSame('2001:db8::2', $guard->extractHost('tcp://[2001:db8::2]:22'));
+        self::assertSame('example.com', $guard->extractHost('example.com:22'));
+
+        $replace = new ReflectionMethod(EndpointGuard::class, 'replaceHost');
+        self::assertSame('10.0.0.1:443', $replace->invoke($guard, 'example.com:443', '10.0.0.1'));
+        self::assertSame('[2001:db8::1]:22', $replace->invoke($guard, '[fe80::1]:22', '2001:db8::1'));
+        self::assertSame('10.0.0.2', $replace->invoke($guard, '[broken', '10.0.0.2'));
+    }
+
+    /**
+     * Ожидает SecurityException от resolvePublicIps.
+     */
+    private function expectSecurityGuard(EndpointGuard $guard, string $host): void
+    {
+        try {
+            $guard->resolvePublicIps($host);
+            self::fail('expected SSRF guard for ' . $host);
+        } catch (SecurityException $exception) {
+            self::assertStringContainsString('SSRF-guard', $exception->getMessage());
+        }
     }
 }

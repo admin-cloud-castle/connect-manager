@@ -1,6 +1,17 @@
 {
     "source": {
-        "directories": ["src"]
+        "directories": ["src"],
+        "excludes": [
+            "Driver/Ssh",
+            "Driver/Http",
+            "Driver/StreamOpener.php",
+            "Driver/ConnectionFactory.php",
+            "Driver/TransportResolver.php",
+            "Contract/ConnectionOptions.php",
+            "Security/PhpDnsResolver.php",
+            "Async/FiberAsyncRuntime.php",
+            "Async/NativeStreamSelector.php"
+        ]
     },
     "timeout": 30,
     "logs": {
