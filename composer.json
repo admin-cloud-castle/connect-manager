@@ -124,9 +124,9 @@
             "@test:mutation"
         ],
         "coverage-check": "php tools/coverage-check.php var/coverage/clover.xml",
+        "docs:benchmark": "php tools/benchmark-competitors.php",
         "docs:build": "phpdoc run --config=phpdoc.dist.xml --force --no-interaction",
         "docs:check": "phpdocumentor --version",
-        "docs:benchmark": "php tools/benchmark-competitors.php",
         "docs:comparison": [
             "@docs:benchmark",
             "php tools/aggregate-comparison-json.php",
