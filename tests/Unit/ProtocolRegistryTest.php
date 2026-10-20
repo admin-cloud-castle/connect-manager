@@ -99,7 +99,7 @@ final class ProtocolRegistryTest extends TestCase
             ++$count;
         }
 
-        self::assertSame(ProtocolCatalog::size(), $count);
+        self::assertSame($count, ProtocolCatalog::size());
     }
 
     /**

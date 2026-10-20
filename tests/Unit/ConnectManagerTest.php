@@ -138,6 +138,6 @@ final class ConnectManagerTest extends TestCase
             ++$count;
         }
 
-        self::assertSame($manager->protocols()->count(), $count);
+        self::assertSame($count, $manager->protocols()->count());
     }
 }

@@ -217,8 +217,8 @@ final class StreamIoFailureTest extends TestCase
     {
         $guard = new EndpointGuard();
         self::assertNull($guard->extractHost('tcp://'));
-        self::assertNull($guard->extractHost('http:///no-host'));
-        self::assertNull($guard->extractHost('http://:'));
+        self::assertNull($guard->extractHost('tls:///no-host'));
+        self::assertNull($guard->extractHost('ssl://:'));
     }
 
     /**

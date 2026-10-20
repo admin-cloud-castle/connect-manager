@@ -154,11 +154,14 @@ final class MutationKillTest extends TestCase
             #[\Override]
             public function release(ConnectionInterface $connection): void
             {
+                // stub: пул-заглушка не хранит соединения
+                unset($connection);
             }
 
             #[\Override]
             public function drain(): void
             {
+                // stub: нечего освобождать
             }
 
             #[\Override]
@@ -177,11 +180,15 @@ final class MutationKillTest extends TestCase
             #[\Override]
             public function awaitReadable(mixed $stream, float $timeoutSeconds): void
             {
+                // stub: async-заглушка не ждёт I/O
+                unset($stream, $timeoutSeconds);
             }
 
             #[\Override]
             public function awaitWritable(mixed $stream, float $timeoutSeconds): void
             {
+                // stub: async-заглушка не ждёт I/O
+                unset($stream, $timeoutSeconds);
             }
         };
 

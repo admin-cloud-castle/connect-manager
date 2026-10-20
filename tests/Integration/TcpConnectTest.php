@@ -139,10 +139,12 @@ final class TcpConnectTest extends TestCase
      */
     public function testUnixSocket(): void
     {
-        $path = sys_get_temp_dir() . '/cc-cm-' . bin2hex(random_bytes(4)) . '.sock';
+        $dir = sys_get_temp_dir();
+        $path = $dir . DIRECTORY_SEPARATOR . 'cc-cm-' . bin2hex(random_bytes(4)) . '.sock';
+        self::assertStringStartsWith($dir, $path);
 
-        if (file_exists($path)) {
-            unlink($path);
+        if (is_file($path)) {
+            self::assertTrue(unlink($path));
         }
 
         $server = stream_socket_server('unix://' . $path, $errno, $errstr);
@@ -158,6 +160,9 @@ final class TcpConnectTest extends TestCase
         $client->close();
         fclose($peer);
         fclose($server);
-        @unlink($path);
+
+        if (is_file($path)) {
+            self::assertTrue(unlink($path));
+        }
     }
 }
