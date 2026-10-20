@@ -73,11 +73,17 @@ final class SshPublicKeyAuthTest extends TestCase
 
     private function exportPem(\OpenSSLAsymmetricKey $key): string
     {
-        $path = tempnam(sys_get_temp_dir(), 'ccmkey');
+        $tempDirectory = sys_get_temp_dir();
+        $path = tempnam($tempDirectory, 'ccmkey');
         self::assertNotFalse($path);
-        self::assertTrue(openssl_pkey_export_to_file($key, $path));
-        $pem = file_get_contents($path);
-        unlink($path);
+        $resolvedPath = realpath($path);
+        self::assertNotFalse($resolvedPath);
+        $resolvedTemp = realpath($tempDirectory);
+        self::assertNotFalse($resolvedTemp);
+        self::assertSame(0, strpos($resolvedPath, $resolvedTemp));
+        self::assertTrue(openssl_pkey_export_to_file($key, $resolvedPath));
+        $pem = file_get_contents($resolvedPath);
+        unlink($resolvedPath);
         self::assertNotFalse($pem);
         self::assertNotSame('', $pem);
 

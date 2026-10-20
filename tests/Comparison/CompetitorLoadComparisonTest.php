@@ -79,18 +79,18 @@ final class CompetitorLoadComparisonTest extends TestCase
     }
 
     /**
-     * @param callable():void $op
+     * @param callable():void $operation
      */
-    private function timed(callable $op): float
+    private function timed(callable $operation): float
     {
         for ($i = 0; $i < 20; ++$i) {
-            $op();
+            $operation();
         }
 
         $start = hrtime(true);
 
         for ($i = 0; $i < self::ITERATIONS; ++$i) {
-            $op();
+            $operation();
         }
 
         return ((float) (hrtime(true) - $start)) / 1e9;

@@ -8,6 +8,8 @@ use CloudCastle\ConnectManager\Tools\ComparisonLoader;
 
 /**
  * Доступ к каталогу аналогов для comparative-тестов.
+ *
+ * @SuppressWarnings("PHPMD.StaticAccess")
  */
 final class ComparisonCatalog
 {

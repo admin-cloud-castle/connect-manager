@@ -35,7 +35,8 @@ final class CompetitorIntegrationComparisonTest extends TestCase
      */
     public function testLocalTcpEchoOursAndSocketRaw(): void
     {
-        $server = @stream_socket_server('tcp://127.0.0.1:0', $errno, $errstr);
+        $server = @stream_socket_server('tcp://127.0.0.1:0', $errorNumber, $errstr);
+        unset($errorNumber);
 
         if ($server === false) {
             self::markTestSkipped('stream_socket_server недоступен: ' . $errstr);
@@ -96,7 +97,8 @@ final class CompetitorIntegrationComparisonTest extends TestCase
      */
     public function testReactLocalTcpConnect(): void
     {
-        $server = @stream_socket_server('tcp://127.0.0.1:0', $errno, $errstr);
+        $server = @stream_socket_server('tcp://127.0.0.1:0', $errorNumber, $errstr);
+        unset($errorNumber);
 
         if ($server === false) {
             self::markTestSkipped('stream_socket_server недоступен: ' . $errstr);

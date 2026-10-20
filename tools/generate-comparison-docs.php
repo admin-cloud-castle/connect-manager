@@ -41,7 +41,8 @@ foreach ($avg['benches'] as $benchName => $benchRow) {
     $nsPerOp = 0.0;
     $memoryDelta = 0;
 
-    if (array_key_exists('ns_per_op', $benchRow)
+    if (
+        array_key_exists('ns_per_op', $benchRow)
         && (is_int($benchRow['ns_per_op']) || is_float($benchRow['ns_per_op']))
     ) {
         $nsPerOp = (float) $benchRow['ns_per_op'];

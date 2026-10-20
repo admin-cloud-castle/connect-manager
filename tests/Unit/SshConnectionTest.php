@@ -55,13 +55,13 @@ final class SshConnectionTest extends TestCase
         $handle = 'H1';
         $open = chr(102) . SshBinary::uint32(1) . SshBinary::sshString($handle);
         $data = chr(103) . SshBinary::uint32(2) . SshBinary::sshString('body');
-        $statusEof = static fn (int $id): string => chr(101)
-            . SshBinary::uint32($id)
+        $statusEof = static fn (int $requestId): string => chr(101)
+            . SshBinary::uint32($requestId)
             . SshBinary::uint32(1)
             . SshBinary::sshString('')
             . SshBinary::sshString('');
-        $statusOk = static fn (int $id): string => chr(101)
-            . SshBinary::uint32($id)
+        $statusOk = static fn (int $requestId): string => chr(101)
+            . SshBinary::uint32($requestId)
             . SshBinary::uint32(0)
             . SshBinary::sshString('')
             . SshBinary::sshString('');

@@ -15,6 +15,8 @@ use OpenSSLAsymmetricKey;
  * @SuppressWarnings("PHPMD.CyclomaticComplexity")
  * @SuppressWarnings("PHPMD.StaticAccess")
  * @SuppressWarnings("PHPMD.NPathComplexity")
+ * @SuppressWarnings("PHPMD.ShortVariable")
+ * @SuppressWarnings("PHPMD.ElseExpression")
  */
 final class SshPublicKeyAuth
 {
@@ -124,15 +126,12 @@ final class SshPublicKeyAuth
 
         $algorithm = $parts['algorithm'];
 
-        if ($algorithm === 'ssh-ed25519') {
-            $signature = $this->signEd25519($toSign, $parts);
-        } elseif ($algorithm === 'rsa-sha2-512') {
-            $signature = $this->opensslSign($toSign, $parts['key'], OPENSSL_ALGO_SHA512, 'RSA-SHA512');
-        } elseif ($algorithm === 'rsa-sha2-256') {
-            $signature = $this->opensslSign($toSign, $parts['key'], OPENSSL_ALGO_SHA256, 'RSA-SHA256');
-        } else {
-            $signature = $this->opensslSign($toSign, $parts['key'], OPENSSL_ALGO_SHA1, 'RSA-SHA1');
-        }
+        $signature = match ($algorithm) {
+            'ssh-ed25519' => $this->signEd25519($toSign, $parts),
+            'rsa-sha2-512' => $this->opensslSign($toSign, $parts['key'], OPENSSL_ALGO_SHA512, 'RSA-SHA512'),
+            'rsa-sha2-256' => $this->opensslSign($toSign, $parts['key'], OPENSSL_ALGO_SHA256, 'RSA-SHA256'),
+            default => $this->opensslSign($toSign, $parts['key'], OPENSSL_ALGO_SHA1, 'RSA-SHA1'),
+        };
 
         return SshBinary::sshString($algorithm) . SshBinary::sshString($signature);
     }
@@ -152,9 +151,9 @@ final class SshPublicKeyAuth
     private function opensslSign(string $toSign, OpenSSLAsymmetricKey $key, int $algorithm, string $label): string
     {
         $signature = '';
-        $ok = openssl_sign($toSign, $signature, $key, $algorithm);
+        $signed = openssl_sign($toSign, $signature, $key, $algorithm);
 
-        if (!$ok) {
+        if (!$signed) {
             throw new ConnectionException($label . ' подпись не удалась');
         }
 
@@ -185,9 +184,9 @@ final class SshPublicKeyAuth
         }
 
         $signature = '';
-        $ok = openssl_sign($toSign, $signature, $parts['key'], 0);
+        $signed = openssl_sign($toSign, $signature, $parts['key'], 0);
 
-        if (!$ok) {
+        if (!$signed) {
             $error = openssl_error_string();
 
             throw new ConnectionException(
@@ -282,7 +281,7 @@ final class SshPublicKeyAuth
      * Собирает публичный blob ssh-ed25519 и secret для sodium.
      *
      * @param OpenSSLAsymmetricKey $key Закрытый Ed25519-ключ
-     * @param mixed                $ed  Массив openssl details['ed25519'] с pub_key/priv_key по 32 байта
+     * @param mixed $ed25519Details Массив openssl details['ed25519'] с pub_key/priv_key по 32 байта
      *
      * @return array{
      *     algorithm: string,
@@ -293,14 +292,14 @@ final class SshPublicKeyAuth
      *
      * @throws ConnectionException При отсутствии или неверной длине ключей
      */
-    private function ed25519Parts(OpenSSLAsymmetricKey $key, mixed $ed): array
+    private function ed25519Parts(OpenSSLAsymmetricKey $key, mixed $ed25519Details): array
     {
-        if (!is_array($ed) || !isset($ed['pub_key'], $ed['priv_key'])) {
+        if (!is_array($ed25519Details) || !isset($ed25519Details['pub_key'], $ed25519Details['priv_key'])) {
             throw new ConnectionException('Ed25519: нет pub_key/priv_key в openssl details');
         }
 
-        $pub = $ed['pub_key'];
-        $priv = $ed['priv_key'];
+        $pub = $ed25519Details['pub_key'];
+        $priv = $ed25519Details['priv_key'];
 
         if (!is_string($pub) || strlen($pub) !== 32 || !is_string($priv) || strlen($priv) !== 32) {
             throw new ConnectionException('Ed25519: некорректная длина ключей');

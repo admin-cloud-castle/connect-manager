@@ -12,6 +12,10 @@ use CloudCastle\ConnectManager\Exception\ConnectionException;
  * @SuppressWarnings("PHPMD.ErrorControlOperator")
  * @SuppressWarnings("PHPMD.CyclomaticComplexity")
  * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
+ * @SuppressWarnings("PHPMD.StaticAccess")
+ * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
+ * @SuppressWarnings("PHPMD.NPathComplexity")
+ * @SuppressWarnings("PHPMD.ShortVariable")
  */
 final class SshWire
 {
@@ -332,18 +336,18 @@ final class SshWire
     /**
      * Инкрементирует AES-CTR IV на указанное число блоков (big-endian counter по всем 16 байтам).
      *
-     * @param string $iv     Текущий IV (16 байт)
-     * @param int    $blocks Сколько блоков прибавить; при <1 возвращается исходный IV
+     * @param string $counterIv Текущий IV (16 байт)
+     * @param int    $blocks    Сколько блоков прибавить; при <1 возвращается исходный IV
      *
      * @return string Новый IV той же длины
      */
-    private function advanceCtr(string $iv, int $blocks): string
+    private function advanceCtr(string $counterIv, int $blocks): string
     {
         if ($blocks < 1) {
-            return $iv;
+            return $counterIv;
         }
 
-        $value = $iv;
+        $value = $counterIv;
 
         for ($i = 0; $i < $blocks; ++$i) {
             for ($j = 15; $j >= 0; --$j) {

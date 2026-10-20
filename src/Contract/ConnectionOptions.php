@@ -196,6 +196,12 @@ final class ConnectionOptions
         ?AuthCredentials $auth = null,
         bool $replaceAuth = false,
     ): self {
+        $nextAuth = $this->auth;
+
+        if ($replaceAuth || $auth instanceof AuthCredentials) {
+            $nextAuth = $auth;
+        }
+
         return new self(
             $connectTimeout ?? $this->connectTimeout,
             $ioTimeout ?? $this->ioTimeout,
@@ -204,7 +210,7 @@ final class ConnectionOptions
             $allowInsecure ?? $this->allowInsecure,
             $streamContext ?? $this->streamContext,
             $mode ?? $this->mode,
-            $replaceAuth || $auth instanceof AuthCredentials ? $auth : $this->auth,
+            $nextAuth,
         );
     }
 }

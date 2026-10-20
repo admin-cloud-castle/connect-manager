@@ -8,6 +8,10 @@ namespace CloudCastle\ConnectManager\Protocol;
  * Каталог протоколов (список OSI + socket и распространённые прикладные).
  *
  * Источник базового списка: https://ru.wikipedia.org/wiki/Список_сетевых_протоколов
+ *
+ * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
+ * @SuppressWarnings("PHPMD.ExcessiveClassLength")
+ * @SuppressWarnings("PHPMD.StaticAccess")
  */
 final class ProtocolCatalog
 {

@@ -13,6 +13,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use React\Socket\Connector;
+use ReflectionClass;
 use Socket\Raw\Factory;
 
 /**
@@ -56,7 +57,7 @@ final class CompetitorMemoryComparisonTest extends TestCase
             }),
             'phpseclib/phpseclib' => $this->measure(static function (): void {
                 // Конструктор SSH2 трогает сеть при connect; измеряем только reflection класса.
-                $ref = new \ReflectionClass(\phpseclib3\Net\SSH2::class);
+                $ref = new ReflectionClass(\phpseclib3\Net\SSH2::class);
                 unset($ref);
             }),
             'clue/socket-raw' => $this->measure(static function (): void {

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace CloudCastle\ConnectManager\Tools;
 
-
 /**
  * Типизированная загрузка каталога/матриц сравнения для генераторов docs.
  */
