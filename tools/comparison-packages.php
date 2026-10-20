@@ -6,16 +6,20 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/ComparisonCatalogException.php';
+
+use CloudCastle\ConnectManager\Tools\ComparisonCatalogException;
+
 $raw = file_get_contents(__DIR__ . '/comparison-packages.json');
 
 if ($raw === false) {
-    throw new RuntimeException('Не удалось прочитать comparison-packages.json');
+    throw new ComparisonCatalogException('Не удалось прочитать comparison-packages.json');
 }
 
 $data = json_decode($raw, true);
 
 if (!is_array($data)) {
-    throw new RuntimeException('Некорректный comparison-packages.json');
+    throw new ComparisonCatalogException('Некорректный comparison-packages.json');
 }
 
 return $data;

@@ -39,7 +39,8 @@ final class CompetitorPerformanceComparisonTest extends TestCase
 
         $startGuzzle = hrtime(true);
         for ($i = 0; $i < $iterations; ++$i) {
-            new Client(['http_errors' => false]);
+            $client = new Client(['http_errors' => false]);
+            unset($client);
         }
         $guzzleNs = hrtime(true) - $startGuzzle;
 

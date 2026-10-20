@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace CloudCastle\ConnectManager\Tools;
 
-use RuntimeException;
 
 /**
  * Типизированная загрузка каталога/матриц сравнения для генераторов docs.
@@ -30,7 +29,7 @@ final class ComparisonLoader
         $classesRaw = $raw['classes'] ?? null;
 
         if (!is_array($orderRaw) || !is_array($labelsRaw) || !is_array($composerRaw) || !is_array($classesRaw)) {
-            throw new RuntimeException('comparison-packages.json: неполная структура');
+            throw new ComparisonCatalogException('comparison-packages.json: неполная структура');
         }
 
         $order = [];
@@ -120,13 +119,13 @@ final class ComparisonLoader
         $raw = file_get_contents($path);
 
         if ($raw === false) {
-            throw new RuntimeException('Не удалось прочитать ' . $filename);
+            throw new ComparisonCatalogException('Не удалось прочитать ' . $filename);
         }
 
         $data = json_decode($raw, true);
 
         if (!is_array($data)) {
-            throw new RuntimeException('Некорректный JSON: ' . $filename);
+            throw new ComparisonCatalogException('Некорректный JSON: ' . $filename);
         }
 
         return $data;

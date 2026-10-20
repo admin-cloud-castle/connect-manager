@@ -8,13 +8,10 @@
 declare(strict_types=1);
 
 if (extension_loaded('xdebug') && (string) ini_get('xdebug.mode') !== 'off' && (string) ini_get('xdebug.mode') !== '') {
-    $php = PHP_BINARY;
-    $args = [$php, '-d', 'xdebug.mode=off', __FILE__];
-    passthru(implode(' ', array_map('escapeshellarg', $args)), $code);
-    exit($code);
+    fwrite(STDERR, "предупреждение: xdebug активен — ns/op зашумлены; запускайте с -d xdebug.mode=off\n");
 }
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use Amp\Socket\ConnectContext;
 use Amp\Socket\DnsSocketConnector;
@@ -76,7 +73,8 @@ $benches = [
     },
     'react_connector_construct' => static function () use ($measure, $iterations, $warm): array {
         return $measure(static function (): void {
-            new Connector();
+            $connector = new Connector();
+            unset($connector);
         }, $iterations, $warm);
     },
     'amphp_connector_construct' => static function () use ($measure, $iterations, $warm): array {
@@ -88,7 +86,8 @@ $benches = [
     },
     'guzzle_client_construct' => static function () use ($measure, $iterations, $warm): array {
         return $measure(static function (): void {
-            new Client(['http_errors' => false]);
+            $client = new Client(['http_errors' => false]);
+            unset($client);
         }, $iterations, $warm);
     },
     'socket_raw_factory_construct' => static function () use ($measure, $iterations, $warm): array {

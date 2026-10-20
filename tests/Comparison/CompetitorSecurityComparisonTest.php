@@ -10,6 +10,7 @@ use CloudCastle\ConnectManager\Contract\ConnectionOptions;
 use CloudCastle\ConnectManager\Exception\SecurityException;
 use CloudCastle\ConnectManager\Security\EndpointGuard;
 use CloudCastle\ConnectManager\Tests\Support\ComparisonCatalog;
+use CloudCastle\ConnectManager\Tools\ComparisonLoader;
 use GuzzleHttp\Client;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -74,8 +75,7 @@ final class CompetitorSecurityComparisonTest extends TestCase
     #[DataProvider('packageKeyProvider')]
     public function testSecurityMatrixCoversPackage(string $key): void
     {
-        /** @var list<array{standard: string, packages: array<string, bool>}> $matrix */
-        $matrix = require dirname(__DIR__, 2) . '/tools/comparison-security.php';
+        $matrix = ComparisonLoader::security();
         self::assertNotSame([], $matrix);
 
         foreach ($matrix as $row) {

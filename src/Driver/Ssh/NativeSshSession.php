@@ -19,6 +19,9 @@ use GMP;
  * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  * @SuppressWarnings("PHPMD.ShortVariable")
+ * @SuppressWarnings("PHPMD.StaticAccess")
+ * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
+ * @SuppressWarnings("PHPMD.EmptyCatchBlock")
  */
 final class NativeSshSession implements SshSessionInterface, SftpChannelInterface
 {
@@ -287,7 +290,8 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
                 . SshBinary::sshString('bye')
                 . SshBinary::sshString(''),
             );
-        } catch (ConnectionException) {
+        } catch (ConnectionException $disconnectError) {
+            unset($disconnectError);
         }
 
         $this->wire->close();
@@ -749,14 +753,8 @@ final class NativeSshSession implements SshSessionInterface, SftpChannelInterfac
         if ($type === self::MSG_CHANNEL_DATA) {
             SshBinary::readUint32($payload, $offset);
             $this->channelBuffer .= SshBinary::readString($payload, $offset);
-
-            return;
-        }
-
-        if ($type === self::MSG_CHANNEL_EOF || $type === self::MSG_CHANNEL_CLOSE) {
+        } elseif ($type === self::MSG_CHANNEL_EOF || $type === self::MSG_CHANNEL_CLOSE) {
             $this->channelEof = true;
-
-            return;
         }
     }
 

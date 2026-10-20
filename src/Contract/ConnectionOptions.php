@@ -11,6 +11,7 @@ namespace CloudCastle\ConnectManager\Contract;
  * @SuppressWarnings("PHPMD.LongVariable")
  * @SuppressWarnings("PHPMD.ExcessiveParameterList")
  * @SuppressWarnings("PHPMD.TooManyPublicMethods")
+ * @SuppressWarnings("PHPMD.CyclomaticComplexity")
  */
 final class ConnectionOptions
 {

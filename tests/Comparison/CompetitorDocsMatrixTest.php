@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CloudCastle\ConnectManager\Tests\Comparison;
 
 use CloudCastle\ConnectManager\Tests\Support\ComparisonCatalog;
+use CloudCastle\ConnectManager\Tools\ComparisonLoader;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -23,8 +24,7 @@ final class CompetitorDocsMatrixTest extends TestCase
      */
     public function testFeaturesMatrixCoversAllPackages(): void
     {
-        /** @var list<array{feature: string, packages: array<string, bool>}> $matrix */
-        $matrix = require dirname(__DIR__, 2) . '/tools/comparison-features.php';
+        $matrix = ComparisonLoader::features();
         self::assertGreaterThanOrEqual(15, count($matrix));
 
         foreach (ComparisonCatalog::load()['order'] as $key) {
@@ -39,8 +39,7 @@ final class CompetitorDocsMatrixTest extends TestCase
      */
     public function testSecurityMatrixCoversAllPackages(): void
     {
-        /** @var list<array{standard: string, packages: array<string, bool>}> $matrix */
-        $matrix = require dirname(__DIR__, 2) . '/tools/comparison-security.php';
+        $matrix = ComparisonLoader::security();
         self::assertGreaterThanOrEqual(8, count($matrix));
 
         foreach (ComparisonCatalog::load()['order'] as $key) {

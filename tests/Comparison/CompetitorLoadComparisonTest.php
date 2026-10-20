@@ -44,7 +44,8 @@ final class CompetitorLoadComparisonTest extends TestCase
                 $conn->close();
             }),
             'react/socket' => $this->timed(static function (): void {
-                new Connector();
+                $connector = new Connector();
+                unset($connector);
             }),
             'amphp/socket' => $this->timed(static function (): void {
                 $connector = new DnsSocketConnector();
@@ -52,7 +53,8 @@ final class CompetitorLoadComparisonTest extends TestCase
                 unset($connector, $context);
             }),
             'guzzlehttp/guzzle' => $this->timed(static function (): void {
-                new Client(['http_errors' => false]);
+                $client = new Client(['http_errors' => false]);
+                unset($client);
             }),
             'clue/socket-raw' => $this->timed(static function (): void {
                 $factory = new Factory();

@@ -36,20 +36,17 @@ final class SshBinary
         $chunk = substr($buffer, $offset, 4);
         $offset += 4;
         $parts = unpack('Nval', $chunk);
+        $value = 0;
 
-        if ($parts === false || !array_key_exists('val', $parts)) {
-            return 0;
+        if (is_array($parts) && array_key_exists('val', $parts)) {
+            if (is_int($parts['val'])) {
+                $value = $parts['val'];
+            } elseif (is_float($parts['val'])) {
+                $value = (int) $parts['val'];
+            }
         }
 
-        if (is_int($parts['val'])) {
-            return $parts['val'];
-        }
-
-        if (is_float($parts['val'])) {
-            return (int) $parts['val'];
-        }
-
-        return 0;
+        return $value;
     }
 
     /**

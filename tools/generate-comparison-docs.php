@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use CloudCastle\ConnectManager\Tools\ComparisonLoader;
 
@@ -14,24 +14,13 @@ $root = dirname(__DIR__);
 $packages = ComparisonLoader::packages();
 $securityMatrix = ComparisonLoader::security();
 $labels = $packages['labels'];
+$productName = 'Connect Manager';
 
 $avgPath = $root . '/var/benchmark/comparison-avg.json';
 
 if (!is_file($avgPath)) {
-    passthru(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($root . '/tools/benchmark-competitors.php'), $benchCode);
-
-    if ($benchCode !== 0) {
-        fwrite(STDERR, "benchmark-competitors failed\n");
-        exit($benchCode);
-    }
-
-    $aggregate = escapeshellarg($root . '/tools/aggregate-comparison-json.php');
-    passthru(escapeshellarg(PHP_BINARY) . ' ' . $aggregate, $aggCode);
-
-    if ($aggCode !== 0) {
-        fwrite(STDERR, "aggregate-comparison-json failed\n");
-        exit($aggCode);
-    }
+    fwrite(STDERR, "нет {$avgPath} — сначала: composer docs:comparison\n");
+    exit(1);
 }
 
 $avgRaw = file_get_contents($avgPath);
@@ -52,10 +41,10 @@ foreach ($avg['benches'] as $benchName => $benchRow) {
     $nsPerOp = 0.0;
     $memoryDelta = 0;
 
-    $nsRaw = $benchRow['ns_per_op'] ?? null;
-
-    if (is_int($nsRaw) || is_float($nsRaw)) {
-        $nsPerOp = (float) $nsRaw;
+    if (array_key_exists('ns_per_op', $benchRow)
+        && (is_int($benchRow['ns_per_op']) || is_float($benchRow['ns_per_op']))
+    ) {
+        $nsPerOp = (float) $benchRow['ns_per_op'];
     }
 
     if (array_key_exists('memory_delta', $benchRow) && is_int($benchRow['memory_delta'])) {
@@ -139,14 +128,14 @@ $constructWinner = '—';
 
 foreach ($constructNs as $key => $value) {
     if ($value > 0 && abs($value - $minConstruct) < 0.0001) {
-        $constructWinner = $key === 'ours' ? 'Connect Manager' : ($labels[$key] ?? $key);
+        $constructWinner = $key === 'ours' ? $productName : ($labels[$key] ?? $key);
         break;
     }
 }
 
 /** @var list<list<string>> $benchRows */
 $benchRows = [
-    ['Метрика', 'Connect Manager', 'react/socket', 'amphp/socket', 'guzzle', 'phpseclib', 'socket-raw', '🏆 Победитель'],
+    ['Метрика', $productName, 'react/socket', 'amphp/socket', 'guzzle', 'phpseclib', 'socket-raw', '🏆 Победитель'],
     [
         'Конструкция клиента / connect (ns/op, avg PHP ' . $phpVersions . ')',
         $fmtNs($constructNs['ours']),
@@ -165,7 +154,7 @@ $benchRows = [
         '—',
         '—',
         '—',
-        'Connect Manager',
+        $productName,
     ],
 ];
 
@@ -184,7 +173,7 @@ $memWinner = '—';
 
 foreach ($memDeltas as $key => $value) {
     if ($value === $minMem) {
-        $memWinner = $key === 'ours' ? 'Connect Manager' : ($labels[$key] ?? $key);
+        $memWinner = $key === 'ours' ? $productName : ($labels[$key] ?? $key);
         break;
     }
 }
@@ -218,7 +207,7 @@ $benchTable = $toTable($benchRows);
 
 $secHeaders = [
     'Стандарт / практика',
-    'Connect Manager',
+    $productName,
     'react/socket',
     'amphp/socket',
     'guzzle',
@@ -239,12 +228,12 @@ foreach ($securityMatrix as $row) {
         $cells[] = $has ? '✅' : '❌';
 
         if ($has) {
-            $winners[] = $key === 'ours' ? 'Connect Manager' : ($labels[$key] ?? $key);
+            $winners[] = $key === 'ours' ? $productName : ($labels[$key] ?? $key);
         }
     }
 
     if (($row['packages']['ours'] ?? false) === true) {
-        $winner = 'Connect Manager';
+        $winner = $productName;
     } elseif ($winners === []) {
         $winner = '—';
     } else {

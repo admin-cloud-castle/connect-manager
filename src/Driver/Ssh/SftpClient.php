@@ -11,6 +11,7 @@ use CloudCastle\ConnectManager\Exception\ConnectionException;
  *
  * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  * @SuppressWarnings("PHPMD.ShortVariable")
+ * @SuppressWarnings("PHPMD.StaticAccess")
  */
 final class SftpClient
 {
