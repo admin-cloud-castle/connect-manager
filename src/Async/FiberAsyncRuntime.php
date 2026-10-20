@@ -46,8 +46,7 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
                 continue;
             }
 
-            $timeout = $value['timeout'];
-            $this->wait($value['stream'], $value['op'], is_int($timeout) ? (float) $timeout : $timeout);
+            $this->wait($value['stream'], $value['op'], (float) $value['timeout']);
             $value = $fiber->resume();
         }
 
@@ -111,9 +110,7 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
      */
     private function suspend(string $op, mixed $stream, float $timeoutSeconds): void
     {
-        $current = Fiber::getCurrent();
-
-        if (!$current instanceof \Fiber) {
+        if (!Fiber::getCurrent() instanceof Fiber) {
             $this->wait($stream, $op, $timeoutSeconds);
 
             return;

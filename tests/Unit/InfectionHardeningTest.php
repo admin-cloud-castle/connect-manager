@@ -27,6 +27,7 @@ use CloudCastle\ConnectManager\Protocol\ProtocolRegistry;
 use CloudCastle\ConnectManager\Security\EndpointGuard;
 use CloudCastle\ConnectManager\Tests\Support\FixedStreamSelector;
 use CloudCastle\ConnectManager\Tests\Support\MixedValues;
+use CloudCastle\ConnectManager\Tests\Support\RecordingStreamSelector;
 use CloudCastle\ConnectManager\Tests\Support\TrackableConnection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -378,15 +379,15 @@ final class InfectionHardeningTest extends TestCase
         self::assertIsString($name);
         $hostPort = str_replace('tcp://', '', $name);
         $manager = new ConnectManager();
-        $closed = false;
+        /** @var ConnectionInterface|null $held */
+        $held = null;
 
         try {
             $manager->connectAsync(
                 'tcp',
                 $hostPort,
-                static function (ConnectionInterface $connection) use (&$closed): never {
-                    $connection->close();
-                    $closed = !$connection->isOpen();
+                static function (ConnectionInterface $connection) use (&$held): never {
+                    $held = $connection;
 
                     throw new \RuntimeException('boom');
                 },
@@ -395,7 +396,8 @@ final class InfectionHardeningTest extends TestCase
             self::fail('expected');
         } catch (\RuntimeException $exception) {
             self::assertSame('boom', $exception->getMessage());
-            self::assertTrue($closed);
+            self::assertInstanceOf(ConnectionInterface::class, $held);
+            self::assertFalse($held->isOpen());
         }
 
         fclose($server);
@@ -454,5 +456,112 @@ final class InfectionHardeningTest extends TestCase
         self::assertGreaterThan(0, $result);
         fclose($pipes[0]);
         fclose($pipes[1]);
+    }
+
+    /**
+     * Fiber suspend вызывает select; min timeout = 1 секунда.
+     */
+    public function testFiberSuspendInvokesSelectorWithMinSecond(): void
+    {
+        $selector = new RecordingStreamSelector(1);
+        $runtime = new FiberAsyncRuntime($selector);
+        $pipes = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+        self::assertIsArray($pipes);
+
+        $runtime->run(static function () use ($runtime, $pipes): void {
+            $runtime->awaitReadable($pipes[0], 0.25);
+        });
+
+        self::assertSame(1, $selector->calls);
+        self::assertSame(1, $selector->lastSeconds);
+        fclose($pipes[0]);
+        fclose($pipes[1]);
+    }
+
+    /**
+     * Injected guard/resolver/opener сохраняются как есть.
+     */
+    public function testFactoryKeepsInjectedDeps(): void
+    {
+        $guard = new EndpointGuard();
+        $resolver = new TransportResolver();
+        $opener = new StreamOpener();
+        $factory = new ConnectionFactory(new ProtocolRegistry(), $guard, $resolver, $opener);
+        self::assertSame($guard, (new ReflectionProperty(ConnectionFactory::class, 'guard'))->getValue($factory));
+        self::assertSame($resolver, (new ReflectionProperty(ConnectionFactory::class, 'resolver'))->getValue($factory));
+        self::assertSame($opener, (new ReflectionProperty(ConnectionFactory::class, 'opener'))->getValue($factory));
+    }
+
+    /**
+     * drain закрывает idle; size суммирует несколько bucket.
+     */
+    public function testPoolDrainAndMultiBucketSize(): void
+    {
+        $closes = 0;
+        $factory = new class ($closes) implements ConnectionFactoryInterface {
+            /** @var callable(): void */
+            private $bump;
+
+            public function __construct(int &$closes)
+            {
+                $this->bump = static function () use (&$closes): void {
+                    ++$closes;
+                };
+            }
+
+            #[\Override]
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
+                unset($options);
+                $bump = $this->bump;
+
+                return new TrackableConnection($protocolId, $endpoint, static function () use ($bump): void {
+                    $bump();
+                });
+            }
+        };
+
+        $pool = new ConnectionPool($factory, 4);
+        $a = $pool->acquire('tcp', 'a:1');
+        $b = $pool->acquire('tcp', 'b:1');
+        $pool->release($a);
+        $pool->release($b);
+        self::assertSame(2, $pool->size());
+        $before = $closes;
+        $pool->drain();
+        self::assertSame(0, $pool->size());
+        self::assertSame($before + 2, $closes);
+        self::assertFalse($a->isOpen());
+        self::assertFalse($b->isOpen());
+    }
+
+    /**
+     * EndpointGuard: нецифровой порт не отрезается; LogicalAnd vs Or.
+     */
+    public function testEndpointGuardNonDigitPortKept(): void
+    {
+        $guard = new EndpointGuard();
+        self::assertSame('host:abc', $guard->extractHost('host:abc'));
+        self::assertSame('example.com', $guard->extractHost('example.com'));
+    }
+
+    /**
+     * Logical read(1) допустим; readChunks default через reflection.
+     */
+    public function testLogicalReadOneAndDefaultChunk(): void
+    {
+        $connection = new LogicalConnection('tcp', 4, 'x');
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        fwrite($stream, 'ab');
+        rewind($stream);
+        $connection->attach($stream);
+        self::assertSame('a', $connection->read(1));
+        $method = new ReflectionMethod(LogicalConnection::class, 'readChunks');
+        self::assertSame(8192, $method->getParameters()[0]->getDefaultValue());
+        $connection->close();
     }
 }

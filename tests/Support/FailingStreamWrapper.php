@@ -49,16 +49,20 @@ final class FailingStreamWrapper
         return true;
     }
 
-    public function stream_write(string $data): int|false
+    public function stream_write(string $data): mixed
     {
-        unset($data);
+        if ($data === "\0fail-ok") {
+            return 0;
+        }
 
         return false;
     }
 
-    public function stream_read(int $count): string|false
+    public function stream_read(int $count): mixed
     {
-        unset($count);
+        if ($count < 0) {
+            return '';
+        }
 
         return false;
     }

@@ -26,8 +26,8 @@ final class StreamOpener
     public function open(string $uri, ConnectionOptions $options): mixed
     {
         $context = stream_context_create($this->buildContextOptions($options));
-        $errno = 0;
-        $errstr = '';
+        $errno = -1;
+        $errstr = 'unknown';
         $stream = @stream_socket_client(
             $uri,
             $errno,
