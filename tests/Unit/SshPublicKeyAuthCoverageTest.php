@@ -76,16 +76,11 @@ final class SshPublicKeyAuthCoverageTest extends TestCase
     }
 
     /**
-     * ed25519Parts с некорректной длиной (через reflection).
+     * ed25519Parts с некорректной длиной (через reflection, без OPENSSL_KEYTYPE_ED25519).
      */
     public function testEd25519PartsBadLength(): void
     {
-        if (!defined('OPENSSL_KEYTYPE_ED25519')) {
-            self::markTestSkipped('OPENSSL_KEYTYPE_ED25519 недоступен');
-        }
-
-        $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_ED25519]);
-        self::assertNotFalse($key);
+        $key = $this->requireRsaKey();
         $method = new ReflectionMethod(SshPublicKeyAuth::class, 'ed25519Parts');
         $this->expectException(ConnectionException::class);
         $method->invoke(new SshPublicKeyAuth(), $key, ['pub_key' => 'short', 'priv_key' => 'short']);
@@ -96,15 +91,51 @@ final class SshPublicKeyAuthCoverageTest extends TestCase
      */
     public function testEd25519PartsMissingDetails(): void
     {
-        if (!defined('OPENSSL_KEYTYPE_ED25519')) {
-            self::markTestSkipped('OPENSSL_KEYTYPE_ED25519 недоступен');
-        }
-
-        $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_ED25519]);
-        self::assertNotFalse($key);
+        $key = $this->requireRsaKey();
         $method = new ReflectionMethod(SshPublicKeyAuth::class, 'ed25519Parts');
         $this->expectException(ConnectionException::class);
         $method->invoke(new SshPublicKeyAuth(), $key, null);
+    }
+
+    /**
+     * ed25519Parts: успешная сборка blob и secret (32+32 байта).
+     */
+    public function testEd25519PartsSuccess(): void
+    {
+        $key = $this->requireRsaKey();
+        $pub = str_repeat("\x11", 32);
+        $priv = str_repeat("\x22", 32);
+        $method = new ReflectionMethod(SshPublicKeyAuth::class, 'ed25519Parts');
+        /** @var array{algorithm: string, publicBlob: string, ed25519Secret: string} $parts */
+        $parts = $method->invoke(new SshPublicKeyAuth(), $key, ['pub_key' => $pub, 'priv_key' => $priv]);
+        self::assertSame('ssh-ed25519', $parts['algorithm']);
+        self::assertSame($priv . $pub, $parts['ed25519Secret']);
+        self::assertStringContainsString('ssh-ed25519', $parts['publicBlob']);
+    }
+
+    /**
+     * signEd25519 через sodium (без OPENSSL_KEYTYPE_ED25519).
+     */
+    public function testSignEd25519ViaSodium(): void
+    {
+        if (!function_exists('sodium_crypto_sign_keypair')) {
+            self::markTestSkipped('sodium недоступен');
+        }
+
+        $keypair = sodium_crypto_sign_keypair();
+        $secret = sodium_crypto_sign_secretkey($keypair);
+        $public = sodium_crypto_sign_publickey($keypair);
+        $key = $this->requireRsaKey();
+        $parts = [
+            'algorithm' => 'ssh-ed25519',
+            'publicBlob' => "\x00\x00\x00\x0bssh-ed25519" . "\x00\x00\x00\x20" . $public,
+            'key' => $key,
+            'ed25519Secret' => $secret,
+        ];
+        $method = new ReflectionMethod(SshPublicKeyAuth::class, 'signEd25519');
+        $signature = $method->invoke(new SshPublicKeyAuth(), 'payload', $parts);
+        self::assertIsString($signature);
+        self::assertSame(64, strlen($signature));
     }
 
     /**
@@ -115,6 +146,17 @@ final class SshPublicKeyAuthCoverageTest extends TestCase
         $method = new ReflectionMethod(SshPublicKeyAuth::class, 'requireSignatureBytes');
         $this->expectException(ConnectionException::class);
         $method->invoke(new SshPublicKeyAuth(), '', 'Test');
+    }
+
+    /**
+     * @return \OpenSSLAsymmetricKey
+     */
+    private function requireRsaKey(): \OpenSSLAsymmetricKey
+    {
+        $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
+        self::assertNotFalse($key);
+
+        return $key;
     }
 
     /**

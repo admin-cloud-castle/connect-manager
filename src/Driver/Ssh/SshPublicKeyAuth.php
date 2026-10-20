@@ -60,8 +60,11 @@ final class SshPublicKeyAuth
             return $this->rsaParts($key, $details['rsa'] ?? null);
         }
 
-        if (defined('OPENSSL_KEYTYPE_ED25519') && $type === constant('OPENSSL_KEYTYPE_ED25519')) {
-            return $this->ed25519Parts($key, $details['ed25519'] ?? null);
+        // OPENSSL_KEYTYPE_ED25519 — с PHP 8.4; на 8.1–8.3 ветка недостижима.
+        $ed25519Type = defined('OPENSSL_KEYTYPE_ED25519') ? constant('OPENSSL_KEYTYPE_ED25519') : null;
+
+        if ($ed25519Type !== null && $type === $ed25519Type) {
+            return $this->ed25519Parts($key, $details['ed25519'] ?? null); // @codeCoverageIgnore
         }
 
         throw new ConnectionException('Поддерживаются RSA и Ed25519 private keys (PEM)');
