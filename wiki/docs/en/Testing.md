@@ -9,4 +9,11 @@
 <!-- BENCH:END -->
 
 <!-- THRESHOLDS:START -->
+| Метрика | Порог | 🏆 Победитель |
+| --- | --- | --- |
+| Покрытие строк (per-file) | ≥ 99.8% | Connect Manager |
+| Infection MSI | 100% | Connect Manager |
+| PHPStan | level max | Connect Manager |
+| Psalm | errorLevel 1 | Connect Manager |
+| PHPCS | PSR-12 | Connect Manager |
 <!-- THRESHOLDS:END -->
