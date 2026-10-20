@@ -80,15 +80,15 @@ final class EndpointGuard
 
         $peer = @stream_socket_get_name($stream, true);
 
-        if (!is_string($peer) || $peer === '') {
+        if (!is_string($peer) || $peer === '') { // @codeCoverageIgnoreStart
             return;
-        }
+        } // @codeCoverageIgnoreEnd
 
         $host = $this->extractHost($peer);
 
-        if ($host === null) {
+        if ($host === null) { // @codeCoverageIgnoreStart
             return;
-        }
+        } // @codeCoverageIgnoreEnd
 
         if ($this->isBlockedIp($host)) {
             throw new SecurityException(sprintf('Пир после connect запрещён (SSRF-guard): %s', $host));

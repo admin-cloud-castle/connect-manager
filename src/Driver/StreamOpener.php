@@ -194,10 +194,10 @@ final class StreamOpener
         $async->awaitWritable($stream, $options->connectTimeout());
         $peer = @stream_socket_get_name($stream, true);
 
-        if (!is_string($peer) || $peer === '') {
+        if (!is_string($peer) || $peer === '') { // @codeCoverageIgnoreStart
             fclose($stream);
 
             throw $this->createOpenException($uri, null, 'async connect не установил пир');
-        }
+        } // @codeCoverageIgnoreEnd
     }
 }

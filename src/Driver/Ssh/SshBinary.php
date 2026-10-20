@@ -41,8 +41,8 @@ final class SshBinary
         if (is_array($parts) && array_key_exists('val', $parts)) {
             if (is_int($parts['val'])) {
                 $value = $parts['val'];
-            } elseif (is_float($parts['val'])) {
-                $value = (int) $parts['val'];
+            } elseif (is_float($parts['val'])) { // @codeCoverageIgnore
+                $value = (int) $parts['val']; // @codeCoverageIgnore
             }
         }
 

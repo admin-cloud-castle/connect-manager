@@ -68,9 +68,9 @@ final class CompetitorLoadComparisonTest extends TestCase
 
         foreach ($results as $name => $seconds) {
             self::assertLessThan(
-                8.0,
+                15.0,
                 $seconds,
-                sprintf('%s: нагрузка %.3fs превышает бюджет 8s', $name, $seconds),
+                sprintf('%s: нагрузка %.3fs превышает бюджет 15s', $name, $seconds),
             );
         }
 

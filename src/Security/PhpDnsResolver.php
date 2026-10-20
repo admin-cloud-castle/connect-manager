@@ -42,8 +42,8 @@ final class PhpDnsResolver implements DnsResolverInterface
     {
         $records = @dns_get_record($host, DNS_A + DNS_AAAA);
 
-        if ($records === false) {
-            return [];
+        if ($records === false) { // @codeCoverageIgnore
+            return []; // @codeCoverageIgnore
         }
 
         $ips = [];

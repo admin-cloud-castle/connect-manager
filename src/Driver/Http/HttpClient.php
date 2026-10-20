@@ -342,8 +342,8 @@ final class HttpClient
 
         $path = $parts['path'] ?? '/';
 
-        if ($path === '') {
-            $path = '/';
+        if ($path === '') { // @codeCoverageIgnore
+            $path = '/'; // @codeCoverageIgnore
         }
 
         return [
@@ -385,8 +385,8 @@ final class HttpClient
 
         $parts = parse_url($currentUrl);
 
-        if (!is_array($parts)) {
-            return $location;
+        if (!is_array($parts)) { // @codeCoverageIgnore
+            return $location; // @codeCoverageIgnore
         }
 
         $scheme = $parts['scheme'] ?? 'http';

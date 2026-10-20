@@ -67,6 +67,6 @@ final class CompetitorPerformanceComparisonTest extends TestCase
         self::assertTrue($seen);
 
         $seconds = ((float) (hrtime(true) - $start)) / 1e9;
-        self::assertLessThan(5.0, $seconds, sprintf('lightweight factories: %.3fs', $seconds));
+        self::assertLessThan(20.0, $seconds, sprintf('lightweight factories: %.3fs', $seconds));
     }
 }

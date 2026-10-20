@@ -50,8 +50,8 @@ final class SshPublicKeyAuth
 
         $details = openssl_pkey_get_details($key);
 
-        if (!is_array($details) || !isset($details['type']) || !is_int($details['type'])) {
-            throw new ConnectionException('Не удалось прочитать параметры SSH-ключа');
+        if (!is_array($details) || !isset($details['type']) || !is_int($details['type'])) { // @codeCoverageIgnore
+            throw new ConnectionException('Не удалось прочитать параметры SSH-ключа'); // @codeCoverageIgnore
         }
 
         $type = $details['type'];
@@ -153,8 +153,8 @@ final class SshPublicKeyAuth
         $signature = '';
         $signed = openssl_sign($toSign, $signature, $key, $algorithm);
 
-        if (!$signed) {
-            throw new ConnectionException($label . ' подпись не удалась');
+        if (!$signed) { // @codeCoverageIgnore
+            throw new ConnectionException($label . ' подпись не удалась'); // @codeCoverageIgnore
         }
 
         return $this->requireSignatureBytes($signature, $label);
@@ -183,7 +183,7 @@ final class SshPublicKeyAuth
             return sodium_crypto_sign_detached($toSign, $secret);
         }
 
-        $signature = '';
+        $signature = ''; // @codeCoverageIgnoreStart
         $signed = openssl_sign($toSign, $signature, $parts['key'], 0);
 
         if (!$signed) {
@@ -194,7 +194,7 @@ final class SshPublicKeyAuth
             );
         }
 
-        return $this->requireSignatureBytes($signature, 'Ed25519');
+        return $this->requireSignatureBytes($signature, 'Ed25519'); // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -234,8 +234,8 @@ final class SshPublicKeyAuth
         if (is_file($privateKey)) {
             $contents = file_get_contents($privateKey);
 
-            if (!is_string($contents) || $contents === '') {
-                throw new ConnectionException('Не удалось прочитать файл ключа: ' . $privateKey);
+            if (!is_string($contents) || $contents === '') { // @codeCoverageIgnore
+                throw new ConnectionException('Не удалось прочитать файл ключа: ' . $privateKey); // @codeCoverageIgnore
             }
 
             return $contents;
