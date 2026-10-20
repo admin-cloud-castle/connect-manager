@@ -148,9 +148,6 @@ final class SshPublicKeyAuthCoverageTest extends TestCase
         $method->invoke(new SshPublicKeyAuth(), '', 'Test');
     }
 
-    /**
-     * @return \OpenSSLAsymmetricKey
-     */
     private function requireRsaKey(): \OpenSSLAsymmetricKey
     {
         $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
