@@ -66,7 +66,7 @@ final class SftpClient
 
         return array_values(array_filter(
             $list,
-            static fn (mixed $entry): bool => is_string($entry),
+            is_string(...),
         ));
     }
 

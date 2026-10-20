@@ -97,7 +97,7 @@ final class SshConnectionTest extends TestCase
         $expected = new SshConnection($ssh, 'ssh', '127.0.0.1:22');
 
         $connector = new class ($expected) implements SshConnectorInterface {
-            public function __construct(private SshConnection $connection)
+            public function __construct(private readonly SshConnection $connection)
             {
             }
 
@@ -132,7 +132,7 @@ final class SshConnectionTest extends TestCase
         $sftpSession->method('isConnected')->willReturn(true);
         $sftpConn = new SshConnection($sftpSession, 'sftp', '127.0.0.1:22');
         $sftpConnector = new class ($sftpConn) implements SshConnectorInterface {
-            public function __construct(private SshConnection $connection)
+            public function __construct(private readonly SshConnection $connection)
             {
             }
 

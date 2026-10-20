@@ -233,13 +233,9 @@ final class HttpClient
             $normalized['content-length'] = (string) strlen($body);
         }
 
-        if (!isset($normalized['connection'])) {
-            $normalized['connection'] = 'close';
-        }
+        $normalized['connection'] ??= 'close';
 
-        if (!isset($normalized['user-agent'])) {
-            $normalized['user-agent'] = 'cloud-castle/connect-manager';
-        }
+        $normalized['user-agent'] ??= 'cloud-castle/connect-manager';
 
         $lines = [sprintf('%s %s HTTP/1.1', $method, $target)];
 

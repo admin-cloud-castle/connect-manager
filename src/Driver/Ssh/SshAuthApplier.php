@@ -62,7 +62,7 @@ final class SshAuthApplier
         try {
             $key = PublicKeyLoader::load($keyMaterial, $passphrase);
         } catch (\Throwable $exception) {
-            throw new ConnectionException('Не удалось загрузить SSH-ключ: ' . $exception->getMessage());
+            throw new ConnectionException('Не удалось загрузить SSH-ключ: ' . $exception->getMessage(), $exception->getCode(), $exception);
         }
 
         if (!$key instanceof PrivateKey) {

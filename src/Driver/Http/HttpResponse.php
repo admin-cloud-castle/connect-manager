@@ -143,7 +143,7 @@ final class HttpResponse
             /** @var array<mixed>|scalar|null $decoded */
             $decoded = json_decode($this->body, true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException $exception) {
-            throw new ConnectionException('Тело ответа не является JSON: ' . $exception->getMessage());
+            throw new ConnectionException('Тело ответа не является JSON: ' . $exception->getMessage(), $exception->getCode(), $exception);
         }
 
         return $decoded;
