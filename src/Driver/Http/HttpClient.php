@@ -37,7 +37,9 @@ final class HttpClient
     public function send(HttpRequest $request, ?ConnectionOptions $options = null): HttpResponse
     {
         if (!$this->factory instanceof ConnectionFactoryInterface) {
-            throw new ConnectionException('HttpClient без ConnectionFactory: используйте exchange() или передайте factory');
+            throw new ConnectionException(
+                'HttpClient без ConnectionFactory: используйте exchange() или передайте factory',
+            );
         }
 
         $options ??= ConnectionOptions::defaults();
@@ -89,8 +91,12 @@ final class HttpClient
      * @param array<string, string> $headers
      * @param array<string, scalar|null> $query
      */
-    public function get(string $url, array $headers = [], array $query = [], ?ConnectionOptions $options = null): HttpResponse
-    {
+    public function get(
+        string $url,
+        array $headers = [],
+        array $query = [],
+        ?ConnectionOptions $options = null,
+    ): HttpResponse {
         return $this->send(HttpRequest::get($url, $headers, $query), $options);
     }
 
@@ -99,8 +105,12 @@ final class HttpClient
      *
      * @param array<string, string> $headers
      */
-    public function post(string $url, string $body = '', array $headers = [], ?ConnectionOptions $options = null): HttpResponse
-    {
+    public function post(
+        string $url,
+        string $body = '',
+        array $headers = [],
+        ?ConnectionOptions $options = null,
+    ): HttpResponse {
         return $this->send(HttpRequest::post($url, $body, $headers), $options);
     }
 
@@ -109,8 +119,12 @@ final class HttpClient
      *
      * @param array<string, string> $headers
      */
-    public function put(string $url, string $body = '', array $headers = [], ?ConnectionOptions $options = null): HttpResponse
-    {
+    public function put(
+        string $url,
+        string $body = '',
+        array $headers = [],
+        ?ConnectionOptions $options = null,
+    ): HttpResponse {
         return $this->send(new HttpRequest('PUT', $url, $headers, $body), $options);
     }
 
@@ -119,8 +133,12 @@ final class HttpClient
      *
      * @param array<string, string> $headers
      */
-    public function patch(string $url, string $body = '', array $headers = [], ?ConnectionOptions $options = null): HttpResponse
-    {
+    public function patch(
+        string $url,
+        string $body = '',
+        array $headers = [],
+        ?ConnectionOptions $options = null,
+    ): HttpResponse {
         return $this->send(new HttpRequest('PATCH', $url, $headers, $body), $options);
     }
 
@@ -140,8 +158,12 @@ final class HttpClient
      * @param array<string, mixed>  $data
      * @param array<string, string> $headers
      */
-    public function postJson(string $url, array $data, array $headers = [], ?ConnectionOptions $options = null): HttpResponse
-    {
+    public function postJson(
+        string $url,
+        array $data,
+        array $headers = [],
+        ?ConnectionOptions $options = null,
+    ): HttpResponse {
         return $this->send(HttpRequest::json('POST', $url, $data, $headers), $options);
     }
 
@@ -151,8 +173,12 @@ final class HttpClient
      * @param array<string, scalar|null> $fields
      * @param array<string, string>      $headers
      */
-    public function postForm(string $url, array $fields, array $headers = [], ?ConnectionOptions $options = null): HttpResponse
-    {
+    public function postForm(
+        string $url,
+        array $fields,
+        array $headers = [],
+        ?ConnectionOptions $options = null,
+    ): HttpResponse {
         return $this->send(HttpRequest::form($url, $fields, $headers), $options);
     }
 
