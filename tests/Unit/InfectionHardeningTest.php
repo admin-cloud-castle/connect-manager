@@ -850,11 +850,12 @@ final class InfectionHardeningTest extends TestCase
     }
 
     /**
-     * ssh/sftp с null options обязаны взять defaults() (Coalesce).
+     * ssh/sftp: кастомный connectTimeout не сбрасывается Coalesce-мутантом.
      */
     public function testSshSftpNullOptionsCoalesceToDefaults(): void
     {
         $auth = AuthCredentials::withPassword('deploy', 'secret');
+        $custom = new ConnectionOptions(12.5);
         $session = new FakeSshSession();
         $ssh = new SshConnection($session, 'ssh', 'host.example:22');
         $factory = $this->createMock(ConnectionFactoryInterface::class);
@@ -872,14 +873,15 @@ final class InfectionHardeningTest extends TestCase
                     self::assertContains($protocol, ['ssh', 'sftp']);
                     self::assertSame('host.example:22', $endpoint);
                     self::assertSame($auth, $options->auth());
+                    self::assertSame(12.5, $options->connectTimeout());
 
                     return $ssh;
                 },
             );
 
         $manager = new ConnectManager(factory: $factory);
-        self::assertSame($ssh, $manager->ssh('host.example:22', $auth));
-        $sftp = $manager->sftp('host.example:22', $auth);
+        self::assertSame($ssh, $manager->ssh('host.example:22', $auth, $custom));
+        $sftp = $manager->sftp('host.example:22', $auth, $custom);
         self::assertSame($session, $sftp->resource());
     }
 
@@ -904,29 +906,41 @@ final class InfectionHardeningTest extends TestCase
             self::assertStringContainsString('управляющие', $exception->getMessage());
         }
 
-        $this->expectSecurityGuard($guard, 'localhost');
-        $this->expectSecurityGuard($guard, 'app.localhost');
-        $this->expectSecurityGuard($guard, '0.0.0.0');
+        $this->assertBlockedLocalHost($guard, 'localhost');
+        $this->assertBlockedLocalHost($guard, 'app.localhost');
+        $this->assertBlockedLocalHost($guard, '0.0.0.0');
+
+        $isLocal = new ReflectionMethod(EndpointGuard::class, 'isLocalHostname');
+        self::assertTrue($isLocal->invoke($guard, 'localhost'));
+        self::assertTrue($isLocal->invoke($guard, 'svc.localhost'));
+        self::assertTrue($isLocal->invoke($guard, '0.0.0.0'));
+        self::assertFalse($isLocal->invoke($guard, 'example.com'));
 
         self::assertSame('2001:db8::2', $guard->extractHost('tcp://[2001:db8::2]:22'));
         self::assertSame('example.com', $guard->extractHost('example.com:22'));
+        self::assertSame('[broken', $guard->extractHost('http://[broken/x'));
 
         $replace = new ReflectionMethod(EndpointGuard::class, 'replaceHost');
         self::assertSame('10.0.0.1:443', $replace->invoke($guard, 'example.com:443', '10.0.0.1'));
+        self::assertSame('10.0.0.1:8', $replace->invoke($guard, 'h:8', '10.0.0.1'));
+        self::assertSame('10.0.0.1', $replace->invoke($guard, 'example.com:abc', '10.0.0.1'));
         self::assertSame('[2001:db8::1]:22', $replace->invoke($guard, '[fe80::1]:22', '2001:db8::1'));
         self::assertSame('10.0.0.2', $replace->invoke($guard, '[broken', '10.0.0.2'));
     }
 
     /**
-     * Ожидает SecurityException от resolvePublicIps.
+     * Локальный host блокируется с точным текстом (убивает Throw_ без throw).
      */
-    private function expectSecurityGuard(EndpointGuard $guard, string $host): void
+    private function assertBlockedLocalHost(EndpointGuard $guard, string $host): void
     {
         try {
             $guard->resolvePublicIps($host);
             self::fail('expected SSRF guard for ' . $host);
         } catch (SecurityException $exception) {
-            self::assertStringContainsString('SSRF-guard', $exception->getMessage());
+            self::assertSame(
+                sprintf('Запрещённый адрес (SSRF-guard): %s', $host),
+                $exception->getMessage(),
+            );
         }
     }
 }
