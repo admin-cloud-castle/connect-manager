@@ -114,7 +114,7 @@ final class SshPublicKeyAuthCoverageTest extends TestCase
     }
 
     /**
-     * signEd25519 через sodium (без OPENSSL_KEYTYPE_ED25519).
+     * Ветка match ssh-ed25519 в sign()/buildRequest через sodium (без OPENSSL_KEYTYPE_ED25519).
      */
     public function testSignEd25519ViaSodium(): void
     {
@@ -132,10 +132,9 @@ final class SshPublicKeyAuthCoverageTest extends TestCase
             'key' => $key,
             'ed25519Secret' => $secret,
         ];
-        $method = new ReflectionMethod(SshPublicKeyAuth::class, 'signEd25519');
-        $signature = $method->invoke(new SshPublicKeyAuth(), 'payload', $parts);
-        self::assertIsString($signature);
-        self::assertSame(64, strlen($signature));
+        $request = (new SshPublicKeyAuth())->buildRequest(str_repeat("\x07", 32), 'u', $parts);
+        self::assertSame(50, ord($request[0]));
+        self::assertStringContainsString('ssh-ed25519', $request);
     }
 
     /**
