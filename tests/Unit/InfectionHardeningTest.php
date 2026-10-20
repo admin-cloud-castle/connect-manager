@@ -830,6 +830,7 @@ final class InfectionHardeningTest extends TestCase
         self::assertSame(3, $opener->applyIoTimeout($memory, 3.0));
         fclose($memory);
 
-        self::assertIsString($opener->lastErrorMessage());
+        error_clear_last();
+        self::assertSame('', $opener->lastErrorMessage());
     }
 }
