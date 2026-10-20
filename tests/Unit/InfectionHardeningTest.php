@@ -25,6 +25,7 @@ use CloudCastle\ConnectManager\Protocol\ProtocolCatalog;
 use CloudCastle\ConnectManager\Protocol\ProtocolDefinition;
 use CloudCastle\ConnectManager\Protocol\ProtocolRegistry;
 use CloudCastle\ConnectManager\Security\EndpointGuard;
+use CloudCastle\ConnectManager\Tests\Support\EmptyChunkStreamWrapper;
 use CloudCastle\ConnectManager\Tests\Support\FixedStreamSelector;
 use CloudCastle\ConnectManager\Tests\Support\MixedValues;
 use CloudCastle\ConnectManager\Tests\Support\RecordingStreamSelector;
@@ -686,5 +687,119 @@ final class InfectionHardeningTest extends TestCase
         $nonNative = new ProtocolDefinition('adsl', 'ADSL', 1, 'none', false, 'adsl');
         $this->expectException(ProtocolException::class);
         $resolver->resolve($nonNative, 'line');
+    }
+
+    /**
+     * Non-native вне SCHEME_MAP с transport=tcp обязан бросить до resolve.
+     */
+    public function testTransportNonNativeTcpTransportThrows(): void
+    {
+        $resolver = new TransportResolver();
+        $weird = new ProtocolDefinition('weirdproto', 'W', 1, 'tcp', false, 'weirdproto');
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('не имеет нативного транспорта');
+        $resolver->resolve($weird, 'h:1');
+    }
+
+    /**
+     * hasExplicitPort: host:port не получает второй порт.
+     */
+    public function testTransportExplicitPortNotDoubled(): void
+    {
+        $resolver = new TransportResolver();
+        $http = new ProtocolDefinition('http', 'HTTP', 7, 'tcp', true, 'http');
+        self::assertSame('tcp://example.com:80', $resolver->resolve($http, 'example.com:80'));
+        self::assertSame('tcp://example.com:9', $resolver->resolve($http, 'example.com:9'));
+        self::assertSame('tcp://example.com::80', $resolver->resolve($http, 'example.com:'));
+        self::assertSame('tls://[2001:db8::1]:443', $resolver->resolve(
+            new ProtocolDefinition('https', 'HTTPS', 7, 'tcp', true, 'https'),
+            '[2001:db8::1]:443',
+        ));
+        self::assertSame('tcp://[2001:db8::2]:80', $resolver->resolve($http, '[2001:db8::2]'));
+    }
+
+    /**
+     * Logical: open=false при живом attach → «закрыто»; empty chunk break.
+     */
+    public function testLogicalClosedFlagAndEmptyChunk(): void
+    {
+        EmptyChunkStreamWrapper::register();
+        $connection = new LogicalConnection('tcp', 4, 'x');
+        $stream = fopen('ccempty://z', 'rb');
+        self::assertNotFalse($stream);
+        $connection->attach($stream);
+        self::assertSame([], iterator_to_array($connection->readChunks(4)));
+
+        $alive = new LogicalConnection('tcp', 4, 'x');
+        $mem = fopen('php://memory', 'r+b');
+        self::assertNotFalse($mem);
+        fwrite($mem, 'ab');
+        rewind($mem);
+        $alive->attach($mem);
+        $open = new ReflectionProperty(LogicalConnection::class, 'open');
+        $open->setValue($alive, false);
+        $this->expectException(ConnectionException::class);
+        $this->expectExceptionMessage('закрыто');
+        $alive->read(1);
+    }
+
+    /**
+     * StreamConnection: chunkSize=1 ок; close обнуляет open и fclose; requireStream And/Or.
+     */
+    public function testStreamConnectionCloseAndChunkOne(): void
+    {
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        fwrite($stream, 'xy');
+        rewind($stream);
+        $connection = new StreamConnection($stream, 'tcp', 4, null);
+        self::assertSame(['x', 'y'], iterator_to_array($connection->readChunks(1)));
+
+        $stream2 = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream2);
+        $connection2 = new StreamConnection($stream2, 'tcp', 4, null);
+        $connection2->close();
+        $open = new ReflectionProperty(StreamConnection::class, 'open');
+        self::assertFalse($open->getValue($connection2));
+        self::assertNull($connection2->resource());
+
+        $stream3 = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream3);
+        $connection3 = new StreamConnection($stream3, 'tcp', 4, null);
+        $connection3->close();
+        $open->setValue($connection3, true);
+        $this->expectException(ConnectionException::class);
+        $connection3->read(1);
+    }
+
+    /**
+     * Opener: refused бросает ConnectionException; blocking и timeout применяются.
+     */
+    public function testOpenerRefusedAndBlockingTimeout(): void
+    {
+        $opener = new StreamOpener();
+        $options = new ConnectionOptions(0.2, 7.0, true, false, false);
+
+        try {
+            $opener->open('tcp://127.0.0.1:1', $options->allowPrivateAddresses());
+            self::fail('refused');
+        } catch (ConnectionException $exception) {
+            self::assertStringContainsString('Не удалось открыть', $exception->getMessage());
+        }
+
+        $server = stream_socket_server('tcp://127.0.0.1:0');
+        self::assertNotFalse($server);
+        $name = stream_socket_get_name($server, false);
+        self::assertIsString($name);
+        $stream = $opener->open('tcp://' . $name, ConnectionOptions::defaults()->allowPrivateAddresses());
+        $meta = stream_get_meta_data($stream);
+        self::assertTrue($meta['blocked']);
+        fclose($stream);
+        fclose($server);
+
+        $memory = fopen('php://memory', 'r+b');
+        self::assertNotFalse($memory);
+        $opener->applyIoTimeout($memory, 3.0);
+        fclose($memory);
     }
 }
