@@ -861,7 +861,11 @@ final class InfectionHardeningTest extends TestCase
         $factory->expects(self::exactly(2))
             ->method('connect')
             ->willReturnCallback(
-                static function (string $protocol, string $endpoint, ConnectionOptions $options) use ($auth, $ssh): SshConnection {
+                static function (
+                    string $protocol,
+                    string $endpoint,
+                    ConnectionOptions $options,
+                ) use ($auth, $ssh): SshConnection {
                     self::assertContains($protocol, ['ssh', 'sftp']);
                     self::assertSame('host.example:22', $endpoint);
                     self::assertSame($auth, $options->auth());
