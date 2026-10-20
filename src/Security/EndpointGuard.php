@@ -85,7 +85,7 @@ final class EndpointGuard
 
         $colon = strrpos($candidate, ':');
 
-        if ($colon !== false && ctype_digit(substr($candidate, $colon + 1))) {
+        if (is_int($colon) && ctype_digit(substr($candidate, $colon + 1))) {
             $candidate = substr($candidate, 0, $colon);
         }
 

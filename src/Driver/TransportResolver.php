@@ -134,6 +134,13 @@ final class TransportResolver
     ];
 
     /**
+     * Схемы без нативного stream_socket_client.
+     *
+     * @var list<string>
+     */
+    private const BLOCKED_SCHEMES = ['none', 'raw', 'serial', 'custom', 'icmp'];
+
+    /**
      * Строит stream URI.
      *
      * @throws ProtocolException
@@ -160,28 +167,41 @@ final class TransportResolver
         }
 
         $scheme = self::SCHEME_MAP[$id] ?? $protocol->transport();
-
-        if (
-            in_array($scheme, ['none', 'raw', 'serial', 'custom', 'icmp'], true)
-        ) {
-            throw new ProtocolException(sprintf(
-                'Протокол %s требует пользовательский драйвер (transport=%s)',
-                $id,
-                $scheme,
-            ));
-        }
-
-        if ($scheme === 'ip') {
-            $scheme = 'tcp';
-        }
-
-        if ($scheme === 'socket') {
-            $scheme = 'tcp';
-        }
-
+        $this->assertSchemeAllowed($protocol, $scheme);
+        $scheme = $this->normalizeScheme($scheme);
         $hostPort = $this->ensurePort($id, $endpoint);
 
         return $scheme . '://' . $hostPort;
+    }
+
+    /**
+     * Запрещённые transport-схемы.
+     *
+     * @throws ProtocolException
+     */
+    private function assertSchemeAllowed(ProtocolDefinitionInterface $protocol, string $scheme): void
+    {
+        if (!in_array($scheme, self::BLOCKED_SCHEMES, true)) {
+            return;
+        }
+
+        throw new ProtocolException(sprintf(
+            'Протокол %s требует пользовательский драйвер (transport=%s)',
+            $protocol->id(),
+            $scheme,
+        ));
+    }
+
+    /**
+     * Нормализует ip/socket → tcp.
+     */
+    private function normalizeScheme(string $scheme): string
+    {
+        if ($scheme === 'ip' || $scheme === 'socket') {
+            return 'tcp';
+        }
+
+        return $scheme;
     }
 
     /**
@@ -194,18 +214,37 @@ final class TransportResolver
                 return $endpoint;
             }
 
-            $port = self::DEFAULT_PORTS[$protocolId] ?? 0;
-
-            return $port > 0 ? $endpoint . ':' . $port : $endpoint;
+            return $this->appendDefaultPort($protocolId, $endpoint);
         }
 
-        $colon = strrpos($endpoint, ':');
-        $portSuffix = $colon === false ? '' : substr($endpoint, $colon + 1);
-
-        if ($portSuffix !== '' && ctype_digit($portSuffix)) {
+        if ($this->hasExplicitPort($endpoint)) {
             return $endpoint;
         }
 
+        return $this->appendDefaultPort($protocolId, $endpoint);
+    }
+
+    /**
+     * Есть ли явный числовой порт в endpoint.
+     */
+    private function hasExplicitPort(string $endpoint): bool
+    {
+        $colon = strrpos($endpoint, ':');
+
+        if (!is_int($colon)) {
+            return false;
+        }
+
+        $suffix = substr($endpoint, $colon + 1);
+
+        return $suffix !== '' && ctype_digit($suffix);
+    }
+
+    /**
+     * Добавляет DEFAULT_PORTS или возвращает endpoint без изменений.
+     */
+    private function appendDefaultPort(string $protocolId, string $endpoint): string
+    {
         $port = self::DEFAULT_PORTS[$protocolId] ?? 0;
 
         if ($port === 0) {

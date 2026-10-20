@@ -26,8 +26,8 @@ final class StreamOpener
     public function open(string $uri, ConnectionOptions $options): mixed
     {
         $context = stream_context_create($this->buildContextOptions($options));
-        $errno = -1;
-        $errstr = 'unknown';
+        $errno = 0;
+        $errstr = '';
         $stream = @stream_socket_client(
             $uri,
             $errno,
@@ -118,6 +118,16 @@ final class StreamOpener
             throw new ConnectionException('Ожидался stream resource');
         }
 
-        stream_set_timeout($stream, max(1, (int) $ioTimeout));
+        stream_set_timeout($stream, $this->resolveIoTimeoutSeconds($ioTimeout));
+    }
+
+    /**
+     * Целые секунды I/O timeout (минимум 1).
+     */
+    public function resolveIoTimeoutSeconds(float $ioTimeout): int
+    {
+        $seconds = (int) $ioTimeout;
+
+        return $seconds > 0 ? $seconds : 1;
     }
 }

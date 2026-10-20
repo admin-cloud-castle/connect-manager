@@ -46,7 +46,7 @@ final class FiberAsyncRuntime implements AsyncRuntimeInterface
                 continue;
             }
 
-            $this->wait($value['stream'], $value['op'], (float) $value['timeout']);
+            $this->wait($value['stream'], $value['op'], $value['timeout']);
             $value = $fiber->resume();
         }
 

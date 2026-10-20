@@ -8,12 +8,16 @@ use CloudCastle\ConnectManager\Async\StreamSelectorInterface;
 
 /**
  * Селектор, запоминающий вызовы и секунды для MSI-тестов.
+ *
+ * @SuppressWarnings("PHPMD.StaticAccess")
  */
 final class RecordingStreamSelector implements StreamSelectorInterface
 {
     public int $calls = 0;
 
     public int $lastSeconds = -1;
+
+    public bool $calledInsideFiber = false;
 
     /**
      * @param int|false $result Результат select
@@ -30,6 +34,7 @@ final class RecordingStreamSelector implements StreamSelectorInterface
     {
         ++$this->calls;
         $this->lastSeconds = $seconds;
+        $this->calledInsideFiber = \Fiber::getCurrent() instanceof \Fiber;
 
         return $this->result;
     }

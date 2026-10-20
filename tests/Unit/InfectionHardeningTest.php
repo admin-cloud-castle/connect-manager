@@ -43,6 +43,7 @@ use ReflectionProperty;
  * @SuppressWarnings("PHPMD.ExcessiveClassLength")
  * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
  * @SuppressWarnings("PHPMD.TooManyPublicMethods")
+ * @SuppressWarnings("PHPMD.TooManyMethods")
  * @SuppressWarnings("PHPMD.ExcessivePublicCount")
  * @SuppressWarnings("PHPMD.MissingImport")
  * @SuppressWarnings("PHPMD.UnusedFormalParameter")
@@ -474,8 +475,91 @@ final class InfectionHardeningTest extends TestCase
 
         self::assertSame(1, $selector->calls);
         self::assertSame(1, $selector->lastSeconds);
+        self::assertFalse($selector->calledInsideFiber);
         fclose($pipes[0]);
         fclose($pipes[1]);
+    }
+
+    /**
+     * Размер чанка по умолчанию 8192; readChunks(1) валиден.
+     */
+    public function testDefaultChunkSizeIsExact(): void
+    {
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        fwrite($stream, str_repeat('x', 9000));
+        rewind($stream);
+        $connection = new StreamConnection($stream, 'tcp', 4, null);
+        $chunks = iterator_to_array($connection->readChunks());
+        self::assertSame(8192, strlen($chunks[0]));
+        self::assertSame(9000 - 8192, strlen($chunks[1]));
+        $connection->close();
+
+        $logical = new LogicalConnection('tcp', 4, 'x');
+        $stream2 = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream2);
+        fwrite($stream2, str_repeat('y', 9000));
+        rewind($stream2);
+        $logical->attach($stream2);
+        $logicalChunks = iterator_to_array($logical->readChunks());
+        self::assertSame(8192, strlen($logicalChunks[0]));
+        $logical->close();
+
+        $logicalTiny = new LogicalConnection('tcp', 4, 'x');
+        $stream3 = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream3);
+        fwrite($stream3, 'z');
+        rewind($stream3);
+        $logicalTiny->attach($stream3);
+        self::assertSame(['z'], iterator_to_array($logicalTiny->readChunks(1)));
+        $logicalTiny->close();
+    }
+
+    /**
+     * resolveIoTimeoutSeconds: минимум 1.
+     */
+    public function testResolveIoTimeoutSeconds(): void
+    {
+        $opener = new StreamOpener();
+        self::assertSame(1, $opener->resolveIoTimeoutSeconds(0.25));
+        self::assertSame(1, $opener->resolveIoTimeoutSeconds(0.0));
+        self::assertSame(5, $opener->resolveIoTimeoutSeconds(5.9));
+    }
+
+    /**
+     * SSL context keys обязательны; failed open бросает.
+     */
+    public function testOpenerContextKeysAndFailedOpen(): void
+    {
+        $opener = new StreamOpener();
+        $opts = $opener->buildContextOptions(ConnectionOptions::defaults());
+        self::assertArrayHasKey('socket', $opts);
+        self::assertArrayHasKey('ssl', $opts);
+        /** @var array<string, mixed> $socket */
+        $socket = $opts['socket'];
+        /** @var array<string, mixed> $ssl */
+        $ssl = $opts['ssl'];
+        self::assertTrue($socket['tcp_nodelay']);
+        self::assertArrayHasKey('verify_peer_name', $ssl);
+        self::assertTrue($ssl['verify_peer_name']);
+        self::assertFalse($ssl['allow_self_signed']);
+
+        $this->expectException(ConnectionException::class);
+        $opener->open('tcp://127.0.0.1:1', ConnectionOptions::defaults()->allowPrivateAddresses());
+    }
+
+    /**
+     * Logical requireAttached после close.
+     */
+    public function testLogicalRequireAfterClose(): void
+    {
+        $connection = new LogicalConnection('tcp', 4, 'x');
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        $connection->attach($stream);
+        $connection->close();
+        $this->expectException(ConnectionException::class);
+        $connection->read(1);
     }
 
     /**
@@ -563,5 +647,44 @@ final class InfectionHardeningTest extends TestCase
         $method = new ReflectionMethod(LogicalConnection::class, 'readChunks');
         self::assertSame(8192, $method->getParameters()[0]->getDefaultValue());
         $connection->close();
+    }
+
+    /**
+     * isOpen требует и open, и resource.
+     */
+    public function testStreamIsOpenConjunction(): void
+    {
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        $connection = new StreamConnection($stream, 'tcp', 4, null);
+        $connection->close();
+        $open = new ReflectionProperty(StreamConnection::class, 'open');
+        $open->setValue($connection, true);
+        self::assertFalse($connection->isOpen());
+    }
+
+    /**
+     * Transport: tcp без порта, blocked schemes, non-native.
+     */
+    public function testTransportMoreEdges(): void
+    {
+        $resolver = new TransportResolver();
+        $tcp = new ProtocolDefinition('tcp', 'TCP', 4, 'tcp', true, 'tcp');
+        self::assertSame('tcp://onlyhost', $resolver->resolve($tcp, 'onlyhost'));
+
+        foreach (['none', 'raw', 'serial', 'custom', 'icmp'] as $transport) {
+            $proto = new ProtocolDefinition('x-' . $transport, 'X', 1, $transport, true, 'x-' . $transport);
+
+            try {
+                $resolver->resolve($proto, 'h:1');
+                self::fail($transport);
+            } catch (ProtocolException $exception) {
+                self::assertStringContainsString($transport, $exception->getMessage());
+            }
+        }
+
+        $nonNative = new ProtocolDefinition('adsl', 'ADSL', 1, 'none', false, 'adsl');
+        $this->expectException(ProtocolException::class);
+        $resolver->resolve($nonNative, 'line');
     }
 }
