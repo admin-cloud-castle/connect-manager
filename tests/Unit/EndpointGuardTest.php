@@ -10,6 +10,7 @@ use CloudCastle\ConnectManager\Security\EndpointGuard;
 use CloudCastle\ConnectManager\Tests\Support\FixedDnsResolver;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,6 +22,8 @@ use PHPUnit\Framework\TestCase;
  * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  */
 #[CoversClass(EndpointGuard::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Contract\ConnectionOptions::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Security\PinnedEndpoint::class)]
 final class EndpointGuardTest extends TestCase
 {
     /**

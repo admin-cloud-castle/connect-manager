@@ -8,6 +8,7 @@ use CloudCastle\ConnectManager\Contract\AuthCredentials;
 use CloudCastle\ConnectManager\Driver\Ssh\SshBinary;
 use CloudCastle\ConnectManager\Driver\Ssh\SshPublicKeyAuth;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -18,6 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversClass(SshPublicKeyAuth::class)]
 #[CoversClass(AuthCredentials::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Driver\Ssh\SshBinary::class)]
 final class SshPublicKeyAuthTest extends TestCase
 {
     /**

@@ -15,6 +15,7 @@ use CloudCastle\ConnectManager\Driver\Http\HttpResponse;
 use CloudCastle\ConnectManager\Exception\ConnectionException;
 use CloudCastle\ConnectManager\Tests\Support\BufferConnection;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -28,6 +29,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(HttpRequest::class)]
 #[CoversClass(HttpResponse::class)]
 #[CoversClass(ConnectManager::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Async\FiberAsyncRuntime::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Contract\AuthCredentials::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Contract\ConnectionOptions::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Pool\ConnectionPool::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Protocol\ProtocolCatalog::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Protocol\ProtocolDefinition::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Protocol\ProtocolRegistry::class)]
 final class HttpClientTest extends TestCase
 {
     /**

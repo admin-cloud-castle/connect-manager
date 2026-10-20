@@ -31,6 +31,7 @@ use CloudCastle\ConnectManager\Tests\Support\MixedValues;
 use CloudCastle\ConnectManager\Tests\Support\RecordingStreamSelector;
 use CloudCastle\ConnectManager\Tests\Support\TrackableConnection;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -68,6 +69,9 @@ use ReflectionProperty;
 #[CoversClass(ProtocolException::class)]
 #[CoversClass(SecurityException::class)]
 #[CoversClass(TimeoutException::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Driver\Http\HttpClient::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Driver\Ssh\SshConnector::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Security\PinnedEndpoint::class)]
 final class InfectionHardeningTest extends TestCase
 {
     /**

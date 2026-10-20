@@ -16,6 +16,7 @@ use CloudCastle\ConnectManager\Exception\ConnectionException;
 use CloudCastle\ConnectManager\Protocol\ProtocolRegistry;
 use CloudCastle\ConnectManager\Tests\Support\FakeSshSession;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -29,6 +30,16 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SftpClient::class)]
 #[CoversClass(AuthCredentials::class)]
 #[CoversClass(SshBinary::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Async\FiberAsyncRuntime::class)]
+#[UsesClass(\CloudCastle\ConnectManager\ConnectManager::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Contract\ConnectionOptions::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Driver\ConnectionFactory::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Driver\Http\HttpClient::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Pool\ConnectionPool::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Protocol\ProtocolCatalog::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Protocol\ProtocolDefinition::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Protocol\ProtocolRegistry::class)]
+#[UsesClass(\CloudCastle\ConnectManager\Security\EndpointGuard::class)]
 final class SshConnectionTest extends TestCase
 {
     /**
