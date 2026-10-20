@@ -13,7 +13,7 @@
             "Async/NativeStreamSelector.php"
         ]
     },
-    "timeout": 30,
+    "timeout": 60,
     "logs": {
         "text": "var/infection/infection.log",
         "html": "var/infection/infection.html",

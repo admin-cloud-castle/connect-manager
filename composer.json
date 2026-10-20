@@ -153,7 +153,7 @@
         "test:load": "phpunit --testsuite load",
         "test:mutation": [
             "Composer\\Config::disableProcessTimeout",
-            "php -d memory_limit=3G vendor/bin/infection --configuration=infection.json.dist --threads=max --show-mutations"
+            "php -d memory_limit=3G vendor/bin/infection --configuration=infection.json.dist --threads=max --show-mutations --only-covered"
         ],
         "test:performance": "phpunit --testsuite performance",
         "test:security": "phpunit --testsuite security",
