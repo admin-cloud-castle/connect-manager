@@ -918,7 +918,7 @@ final class InfectionHardeningTest extends TestCase
 
         self::assertSame('2001:db8::2', $guard->extractHost('tcp://[2001:db8::2]:22'));
         self::assertSame('example.com', $guard->extractHost('example.com:22'));
-        self::assertSame('[broken', $guard->extractHost('http://[broken/x'));
+        self::assertSame('[broken', $guard->extractHost('https://[broken/x'));
 
         $replace = new ReflectionMethod(EndpointGuard::class, 'replaceHost');
         self::assertSame('10.0.0.1:443', $replace->invoke($guard, 'example.com:443', '10.0.0.1'));
