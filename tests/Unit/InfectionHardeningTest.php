@@ -878,8 +878,8 @@ final class InfectionHardeningTest extends TestCase
             );
 
         $manager = new ConnectManager(factory: $factory);
-        self::assertSame($ssh, $manager->ssh('host.example:22', $auth, null));
-        $sftp = $manager->sftp('host.example:22', $auth, null);
+        self::assertSame($ssh, $manager->ssh('host.example:22', $auth));
+        $sftp = $manager->sftp('host.example:22', $auth);
         self::assertSame($session, $sftp->resource());
     }
 
