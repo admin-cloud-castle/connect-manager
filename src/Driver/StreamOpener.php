@@ -38,14 +38,7 @@ final class StreamOpener
         }
 
         $appliedTimeout = $this->applyIoTimeout($stream, $options->ioTimeout());
-
-        if ($appliedTimeout < 1) {
-            fclose($stream);
-
-            throw new ConnectionException(sprintf('Некорректный I/O timeout: %s', $uri));
-        }
-
-        stream_set_blocking($stream, true);
+        @stream_set_timeout($stream, $appliedTimeout);
 
         return $stream;
     }
