@@ -55,8 +55,18 @@ final class SshConnectionTest extends TestCase
         $handle = 'H1';
         $open = chr(102) . SshBinary::uint32(1) . SshBinary::sshString($handle);
         $data = chr(103) . SshBinary::uint32(2) . SshBinary::sshString('body');
-        $eof = chr(101) . SshBinary::uint32(3) . SshBinary::uint32(1) . SshBinary::sshString('') . SshBinary::sshString('');
-        $close = chr(101) . SshBinary::uint32(4) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
+        $statusEof = static fn (int $id): string => chr(101)
+            . SshBinary::uint32($id)
+            . SshBinary::uint32(1)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
+        $statusOk = static fn (int $id): string => chr(101)
+            . SshBinary::uint32($id)
+            . SshBinary::uint32(0)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
+        $eof = $statusEof(3);
+        $close = $statusOk(4);
         $session = new FakeSshSession('x', [$open, $data, $eof, $close]);
         $client = $session->openSftp();
 
@@ -64,13 +74,13 @@ final class SshConnectionTest extends TestCase
         self::assertSame($session, $client->resource());
 
         $putOpen = chr(102) . SshBinary::uint32(1) . SshBinary::sshString('H2');
-        $putOk = chr(101) . SshBinary::uint32(2) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
-        $putClose = chr(101) . SshBinary::uint32(3) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
+        $putOk = $statusOk(2);
+        $putClose = $statusOk(3);
         $putSession = new FakeSshSession('x', [$putOpen, $putOk, $putClose]);
         $putSession->openSftp()->put('/b', 'xy');
 
-        $mkdirOk = chr(101) . SshBinary::uint32(1) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
-        $delOk = chr(101) . SshBinary::uint32(1) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
+        $mkdirOk = $statusOk(1);
+        $delOk = $statusOk(1);
         (new FakeSshSession('x', [$mkdirOk]))->openSftp()->mkdir('/d');
         (new FakeSshSession('x', [$delOk]))->openSftp()->delete('/a');
 
@@ -86,8 +96,8 @@ final class SshConnectionTest extends TestCase
             . SshBinary::sshString('-rw-r--r-- file.txt')
             . SshBinary::uint32(0)
             . str_repeat("\x00", 40);
-        $dirEof = chr(101) . SshBinary::uint32(3) . SshBinary::uint32(1) . SshBinary::sshString('') . SshBinary::sshString('');
-        $dirClose = chr(101) . SshBinary::uint32(4) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
+        $dirEof = $statusEof(3);
+        $dirClose = $statusOk(4);
         self::assertSame(
             ['file.txt'],
             (new FakeSshSession('x', [$dirOpen, $dirName, $dirEof, $dirClose]))->openSftp()->list('/'),

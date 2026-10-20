@@ -32,7 +32,8 @@ final class PhpSecLibComparisonTest extends TestCase
     {
         self::assertContains('login', get_class_methods(SSH2::class));
         self::assertSame('u', AuthCredentials::withPassword('u', 'p')->username());
-        self::assertNotNull(AuthCredentials::withPublicKey('u', "-----BEGIN FAKE-----\nX\n-----END FAKE-----")->privateKey());
+        $fakeKey = "-----BEGIN FAKE-----\nX\n-----END FAKE-----";
+        self::assertNotNull(AuthCredentials::withPublicKey('u', $fakeKey)->privateKey());
         self::assertTrue(class_exists(SshPublicKeyAuth::class));
         self::assertTrue(class_exists(RSA::class));
     }

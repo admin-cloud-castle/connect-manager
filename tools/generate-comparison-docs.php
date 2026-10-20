@@ -25,7 +25,8 @@ if (!is_file($avgPath)) {
         exit($benchCode);
     }
 
-    passthru(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($root . '/tools/aggregate-comparison-json.php'), $aggCode);
+    $aggregate = escapeshellarg($root . '/tools/aggregate-comparison-json.php');
+    passthru(escapeshellarg(PHP_BINARY) . ' ' . $aggregate, $aggCode);
 
     if ($aggCode !== 0) {
         fwrite(STDERR, "aggregate-comparison-json failed\n");
@@ -51,8 +52,10 @@ foreach ($avg['benches'] as $benchName => $benchRow) {
     $nsPerOp = 0.0;
     $memoryDelta = 0;
 
-    if (array_key_exists('ns_per_op', $benchRow) && (is_int($benchRow['ns_per_op']) || is_float($benchRow['ns_per_op']))) {
-        $nsPerOp = (float) $benchRow['ns_per_op'];
+    $nsRaw = $benchRow['ns_per_op'] ?? null;
+
+    if (is_int($nsRaw) || is_float($nsRaw)) {
+        $nsPerOp = (float) $nsRaw;
     }
 
     if (array_key_exists('memory_delta', $benchRow) && is_int($benchRow['memory_delta'])) {
@@ -287,10 +290,11 @@ foreach ($targets as $rel) {
             mkdir($dir, 0o775, true);
         }
 
-        file_put_contents(
-            $path,
-            "# Comparison\n\n<!-- FEATURES:START -->\n<!-- FEATURES:END -->\n\n<!-- BENCH:START -->\n<!-- BENCH:END -->\n\n<!-- SECURITY:START -->\n<!-- SECURITY:END -->\n",
-        );
+        $stub = "# Comparison\n\n"
+            . "<!-- FEATURES:START -->\n<!-- FEATURES:END -->\n\n"
+            . "<!-- BENCH:START -->\n<!-- BENCH:END -->\n\n"
+            . "<!-- SECURITY:START -->\n<!-- SECURITY:END -->\n";
+        file_put_contents($path, $stub);
     }
 
     $content = file_get_contents($path);
