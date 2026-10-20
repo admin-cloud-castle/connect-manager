@@ -758,6 +758,7 @@ final class InfectionHardeningTest extends TestCase
         $raw = MixedValues::memoryStream();
         $connection2 = new StreamConnection($raw, 'tcp', 4, null);
         $connection2->close();
+        $connection2->close();
         $open = new ReflectionProperty(StreamConnection::class, 'open');
         self::assertFalse($open->getValue($connection2));
         self::assertNull($connection2->resource());
