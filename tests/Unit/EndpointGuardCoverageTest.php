@@ -73,7 +73,6 @@ final class EndpointGuardCoverageTest extends TestCase
         $guard->assertConnectedPeer($pair[0], ConnectionOptions::defaults()->allowPrivateAddresses());
         fclose($pair[0]);
         fclose($pair[1]);
-        self::assertTrue(true);
     }
 
     /**
@@ -86,6 +85,5 @@ final class EndpointGuardCoverageTest extends TestCase
         self::assertNotFalse($stream);
         $guard->assertConnectedPeer($stream, ConnectionOptions::defaults());
         fclose($stream);
-        self::assertTrue(true);
     }
 }

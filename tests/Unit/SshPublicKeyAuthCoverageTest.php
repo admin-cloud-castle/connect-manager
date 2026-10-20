@@ -45,6 +45,7 @@ final class SshPublicKeyAuthCoverageTest extends TestCase
         $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
         self::assertNotFalse($key);
         openssl_pkey_export($key, $pem);
+        self::assertIsString($pem);
         $helper = new SshPublicKeyAuth();
         $parts = $helper->load(AuthCredentials::withPublicKey('u', $pem));
         $request = $helper->buildRequest(str_repeat("\x04", 32), 'u', $parts);

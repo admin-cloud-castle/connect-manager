@@ -169,10 +169,7 @@ final class CoverageGapsTest extends TestCase
                 }
             },
         );
-        self::assertInstanceOf(
-            SftpClient::class,
-            (new ConnectManager(factory: $sftpFactory))->sftp('127.0.0.1:22', $auth, $options),
-        );
+        (new ConnectManager(factory: $sftpFactory))->sftp('127.0.0.1:22', $auth, $options);
 
         $badFactory = new class () implements ConnectionFactoryInterface {
             #[\Override]
@@ -244,7 +241,6 @@ final class CoverageGapsTest extends TestCase
             $tlsFactory->connect('tcp', 'remote.test:9', ConnectionOptions::defaults());
             self::fail('ожидалось исключение connect');
         } catch (ConnectionException) {
-            self::assertTrue(true);
         }
     }
 
@@ -542,7 +538,6 @@ final class CoverageGapsTest extends TestCase
             $badOpen->openSftp()->get('/bad');
             self::fail('ожидалось исключение OPEN');
         } catch (ConnectionException) {
-            self::assertTrue(true);
         }
 
         $handle = 'H';
@@ -573,7 +568,6 @@ final class CoverageGapsTest extends TestCase
             $listFail->openSftp()->list('/dir');
             self::fail('ожидалось исключение READDIR');
         } catch (ConnectionException) {
-            self::assertTrue(true);
         }
 
         $openDirFail = chr(101)
@@ -586,7 +580,6 @@ final class CoverageGapsTest extends TestCase
             (new FakeSshSession('x', [$openDirFail]))->openSftp()->list('/z');
             self::fail('ожидалось исключение OPENDIR');
         } catch (ConnectionException) {
-            self::assertTrue(true);
         }
 
         $openH = chr(102) . SshBinary::uint32(1) . SshBinary::sshString('h');
@@ -601,7 +594,6 @@ final class CoverageGapsTest extends TestCase
             (new FakeSshSession('x', [$openH, $badRead, $closeH]))->openSftp()->get('/r');
             self::fail('ожидалось исключение READ');
         } catch (ConnectionException) {
-            self::assertTrue(true);
         }
 
         $badStatus = chr(99) . SshBinary::uint32(1);
@@ -610,7 +602,6 @@ final class CoverageGapsTest extends TestCase
             (new FakeSshSession('x', [$openH, $badStatus]))->openSftp()->put('/p', 'x');
             self::fail('ожидалось исключение STATUS');
         } catch (ConnectionException) {
-            self::assertTrue(true);
         }
 
         $openDirOk = chr(102) . SshBinary::uint32(1) . SshBinary::sshString('dh');
@@ -677,12 +668,12 @@ final class CoverageGapsTest extends TestCase
             $helper->load(AuthCredentials::withPublicKey('u', 'not-a-pem'));
             self::fail('ожидалось исключение');
         } catch (ConnectionException) {
-            self::assertTrue(true);
         }
 
         $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
         self::assertNotFalse($key);
         openssl_pkey_export($key, $pem);
+        self::assertIsString($pem);
         $parts = $helper->load(AuthCredentials::withPublicKey('u', $pem));
         $parts['algorithm'] = 'rsa-sha2-512';
         $request = $helper->buildRequest(str_repeat("\x03", 32), 'u', $parts);
@@ -699,12 +690,12 @@ final class CoverageGapsTest extends TestCase
             $ec = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
             if ($ec !== false) {
                 openssl_pkey_export($ec, $ecPem);
+                self::assertIsString($ecPem);
 
                 try {
                     $helper->load(AuthCredentials::withPublicKey('u', $ecPem));
                     self::fail('ожидалось исключение для EC');
                 } catch (ConnectionException) {
-                    self::assertTrue(true);
                 }
             }
         }
@@ -786,7 +777,6 @@ final class CoverageGapsTest extends TestCase
             $guard->assertConnectedPeer($client, ConnectionOptions::defaults());
             self::fail('ожидался SecurityException');
         } catch (SecurityException) {
-            self::assertTrue(true);
         } finally {
             fclose($client);
             fclose($server);
@@ -815,10 +805,10 @@ final class CoverageGapsTest extends TestCase
      */
     public function testEndpointGuardAssertConnectedPeerNoops(): void
     {
+        $this->expectNotToPerformAssertions();
         $guard = new EndpointGuard(new FixedDnsResolver());
         $guard->assertConnectedPeer(null, ConnectionOptions::defaults());
         $guard->assertConnectedPeer(null, ConnectionOptions::defaults()->allowPrivateAddresses());
-        self::assertTrue(true);
     }
 
     /**
