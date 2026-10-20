@@ -879,7 +879,8 @@ final class InfectionHardeningTest extends TestCase
 
         $manager = new ConnectManager(factory: $factory);
         self::assertSame($ssh, $manager->ssh('host.example:22', $auth, null));
-        self::assertInstanceOf(SftpClient::class, $manager->sftp('host.example:22', $auth, null));
+        $sftp = $manager->sftp('host.example:22', $auth, null);
+        self::assertSame($session, $sftp->resource());
     }
 
     /**
