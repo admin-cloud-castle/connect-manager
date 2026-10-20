@@ -133,8 +133,11 @@ final class CoverageGapsTest extends TestCase
             }
 
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ConnectionOptions $options): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ConnectionOptions $options,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
 
                 return $this->connection;
@@ -147,25 +150,37 @@ final class CoverageGapsTest extends TestCase
 
         self::assertSame($sshConn, $manager->ssh('127.0.0.1:22', $auth, $options));
         $sftpConn = new SshConnection(new FakeSshSession(), 'sftp', 'h:22');
-        $sftpFactory = new ConnectionFactory(new ProtocolRegistry(), ssh: new class ($sftpConn) implements SshConnectorInterface {
-            public function __construct(private readonly SshConnection $connection)
-            {
-            }
+        $sftpFactory = new ConnectionFactory(
+            new ProtocolRegistry(),
+            ssh: new class ($sftpConn) implements SshConnectorInterface {
+                public function __construct(private readonly SshConnection $connection)
+                {
+                }
 
-            #[\Override]
-            public function connect(string $protocolId, string $endpoint, ConnectionOptions $options): ConnectionInterface
-            {
-                unset($protocolId, $endpoint, $options);
+                #[\Override]
+                public function connect(
+                    string $protocolId,
+                    string $endpoint,
+                    ConnectionOptions $options,
+                ): ConnectionInterface {
+                    unset($protocolId, $endpoint, $options);
 
-                return $this->connection;
-            }
-        });
-        self::assertInstanceOf(SftpClient::class, (new ConnectManager(factory: $sftpFactory))->sftp('127.0.0.1:22', $auth, $options));
+                    return $this->connection;
+                }
+            },
+        );
+        self::assertInstanceOf(
+            SftpClient::class,
+            (new ConnectManager(factory: $sftpFactory))->sftp('127.0.0.1:22', $auth, $options),
+        );
 
         $badFactory = new class () implements ConnectionFactoryInterface {
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ?ConnectionOptions $options = null): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
 
                 return new LogicalConnection('ssh', 7, 'x');
@@ -191,15 +206,21 @@ final class CoverageGapsTest extends TestCase
                 }
 
                 #[\Override]
-                public function connect(string $protocolId, string $endpoint, ConnectionOptions $options): ConnectionInterface
-                {
+                public function connect(
+                    string $protocolId,
+                    string $endpoint,
+                    ConnectionOptions $options,
+                ): ConnectionInterface {
                     unset($protocolId, $endpoint, $options);
 
                     return $this->connection;
                 }
             },
         );
-        self::assertSame($sshConn, $factory->connect('sftp', '127.0.0.1:22', ConnectionOptions::defaults()->allowPrivateAddresses()));
+        self::assertSame(
+            $sshConn,
+            $factory->connect('sftp', '127.0.0.1:22', ConnectionOptions::defaults()->allowPrivateAddresses()),
+        );
 
         $server = stream_socket_server('tcp://127.0.0.1:0');
         self::assertNotFalse($server);
@@ -298,8 +319,11 @@ final class CoverageGapsTest extends TestCase
     {
         $client = new HttpClient(new class () implements ConnectionFactoryInterface {
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ?ConnectionOptions $options = null): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
 
                 return new BufferConnection("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
@@ -317,8 +341,11 @@ final class CoverageGapsTest extends TestCase
     {
         $client = new HttpClient(new class () implements ConnectionFactoryInterface {
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ?ConnectionOptions $options = null): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
 
                 return new BufferConnection("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
@@ -337,8 +364,11 @@ final class CoverageGapsTest extends TestCase
             public int $n = 0;
 
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ?ConnectionOptions $options = null): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
                 ++$this->n;
 
@@ -355,8 +385,11 @@ final class CoverageGapsTest extends TestCase
 
         $emptyLocation = new class () implements ConnectionFactoryInterface {
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ?ConnectionOptions $options = null): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
 
                 return new BufferConnection(
@@ -370,8 +403,11 @@ final class CoverageGapsTest extends TestCase
             public int $n = 0;
 
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ?ConnectionOptions $options = null): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
                 ++$this->n;
 
@@ -390,8 +426,11 @@ final class CoverageGapsTest extends TestCase
             public int $n = 0;
 
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ?ConnectionOptions $options = null): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
                 ++$this->n;
 
@@ -414,8 +453,11 @@ final class CoverageGapsTest extends TestCase
     {
         $factory = new class () implements ConnectionFactoryInterface {
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ?ConnectionOptions $options = null): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
 
                 return new BufferConnection("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
@@ -489,7 +531,11 @@ final class CoverageGapsTest extends TestCase
         $existsFail = new FakeSshSession('x', []);
         self::assertFalse($existsFail->openSftp()->exists('/missing'));
 
-        $statusOk = chr(101) . SshBinary::uint32(1) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
+        $statusOk = chr(101)
+            . SshBinary::uint32(1)
+            . SshBinary::uint32(0)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
         $badOpen = new FakeSshSession('x', [$statusOk]);
 
         try {
@@ -501,14 +547,26 @@ final class CoverageGapsTest extends TestCase
 
         $handle = 'H';
         $openOk = chr(102) . SshBinary::uint32(1) . SshBinary::sshString($handle);
-        $emptyRead = chr(101) . SshBinary::uint32(2) . SshBinary::uint32(1) . SshBinary::sshString('') . SshBinary::sshString('');
-        $closeOk = chr(101) . SshBinary::uint32(3) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
+        $emptyRead = chr(101)
+            . SshBinary::uint32(2)
+            . SshBinary::uint32(1)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
+        $closeOk = chr(101)
+            . SshBinary::uint32(3)
+            . SshBinary::uint32(0)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
         $sessionRead = new FakeSshSession('x', [$openOk, $emptyRead, $closeOk]);
         self::assertSame('', $sessionRead->openSftp()->get('/empty'));
 
         $wrongType = chr(102) . SshBinary::uint32(1) . SshBinary::sshString('D');
         $badDir = chr(99) . SshBinary::uint32(2);
-        $dirClose = chr(101) . SshBinary::uint32(3) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
+        $dirClose = chr(101)
+            . SshBinary::uint32(3)
+            . SshBinary::uint32(0)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
         $listFail = new FakeSshSession('x', [$wrongType, $badDir, $dirClose]);
 
         try {
@@ -518,7 +576,11 @@ final class CoverageGapsTest extends TestCase
             self::assertTrue(true);
         }
 
-        $openDirFail = chr(101) . SshBinary::uint32(1) . SshBinary::uint32(1) . SshBinary::sshString('') . SshBinary::sshString('');
+        $openDirFail = chr(101)
+            . SshBinary::uint32(1)
+            . SshBinary::uint32(1)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
 
         try {
             (new FakeSshSession('x', [$openDirFail]))->openSftp()->list('/z');
@@ -529,7 +591,11 @@ final class CoverageGapsTest extends TestCase
 
         $openH = chr(102) . SshBinary::uint32(1) . SshBinary::sshString('h');
         $badRead = chr(99) . SshBinary::uint32(2);
-        $closeH = chr(101) . SshBinary::uint32(3) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
+        $closeH = chr(101)
+            . SshBinary::uint32(3)
+            . SshBinary::uint32(0)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
 
         try {
             (new FakeSshSession('x', [$openH, $badRead, $closeH]))->openSftp()->get('/r');
@@ -549,17 +615,39 @@ final class CoverageGapsTest extends TestCase
 
         $openDirOk = chr(102) . SshBinary::uint32(1) . SshBinary::sshString('dh');
         $emptyDir = '';
-        $closeDir = chr(101) . SshBinary::uint32(3) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
-        self::assertSame([], (new FakeSshSession('x', [$openDirOk, $emptyDir, $closeDir]))->openSftp()->list('/e'));
+        $closeDir = chr(101)
+            . SshBinary::uint32(3)
+            . SshBinary::uint32(0)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
+        self::assertSame(
+            [],
+            (new FakeSshSession('x', [$openDirOk, $emptyDir, $closeDir]))->openSftp()->list('/e'),
+        );
 
         $openRead = chr(102) . SshBinary::uint32(1) . SshBinary::sshString('rh');
         $emptyReadPacket = '';
-        $closeRead = chr(101) . SshBinary::uint32(3) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
-        self::assertSame('', (new FakeSshSession('x', [$openRead, $emptyReadPacket, $closeRead]))->openSftp()->get('/empty2'));
+        $closeRead = chr(101)
+            . SshBinary::uint32(3)
+            . SshBinary::uint32(0)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
+        self::assertSame(
+            '',
+            (new FakeSshSession('x', [$openRead, $emptyReadPacket, $closeRead]))->openSftp()->get('/empty2'),
+        );
 
         $openPut = chr(102) . SshBinary::uint32(1) . SshBinary::sshString('ph');
-        $writeOk = chr(101) . SshBinary::uint32(2) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
-        $badClose = chr(101) . SshBinary::uint32(99) . SshBinary::uint32(0) . SshBinary::sshString('') . SshBinary::sshString('');
+        $writeOk = chr(101)
+            . SshBinary::uint32(2)
+            . SshBinary::uint32(0)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
+        $badClose = chr(101)
+            . SshBinary::uint32(99)
+            . SshBinary::uint32(0)
+            . SshBinary::sshString('')
+            . SshBinary::sshString('');
 
         try {
             (new FakeSshSession('x', [$openPut, $writeOk, $badClose]))->openSftp()->put('/p', 'z');
@@ -665,8 +753,11 @@ final class CoverageGapsTest extends TestCase
     {
         $badFactory = new class () implements ConnectionFactoryInterface {
             #[\Override]
-            public function connect(string $protocolId, string $endpoint, ?ConnectionOptions $options = null): ConnectionInterface
-            {
+            public function connect(
+                string $protocolId,
+                string $endpoint,
+                ?ConnectionOptions $options = null,
+            ): ConnectionInterface {
                 unset($protocolId, $endpoint, $options);
 
                 return new LogicalConnection('sftp', 7, 'x');
