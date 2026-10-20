@@ -88,10 +88,12 @@ final class StreamConnectionTest extends TestCase
      */
     public function testInvalidResourceThrows(): void
     {
-        $this->expectException(ConnectionException::class);
-        $this->expectExceptionMessageMatches('/stream/i');
-
-        new StreamConnection(MixedValues::notAStream(), 'tcp', 4, null);
+        try {
+            $connection = new StreamConnection(MixedValues::notAStream(), 'tcp', 4, null);
+            self::fail('Ожидался ConnectionException, получен ' . $connection::class);
+        } catch (ConnectionException $exception) {
+            self::assertMatchesRegularExpression('/stream/i', $exception->getMessage());
+        }
     }
 
     /**
